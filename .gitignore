@@ -1,0 +1,16 @@
+# Binaries
+*.exe
+*.test
+*.out
+coverage.*
+
+# Build outputs
+/build/
+/interest-relay
+
+# Go workspace files: the workspace is local to a developer's checkout
+go.work
+go.work.sum
+
+# env file
+.env

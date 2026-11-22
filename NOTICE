@@ -1,0 +1,32 @@
+interest-relay
+Copyright 2026 Lightweb Inc. (https://lightweb.net)
+
+=========================================================================
+
+This software is a small standalone daemon that relays topic interest: it
+holds the union of the interest announced by the hosts and relays below it
+and announces that union to its own upstreams, as far as the multicast
+delivery edge that serves the consumer.
+
+This product includes software developed at Lightweb Inc. and licensed
+under the Apache License, Version 2.0 (see LICENSE).
+
+=========================================================================
+Third-Party Software
+
+This product includes third-party software, distributed under the terms
+of their respective licenses. Each dependency retains its own copyright;
+this notice does not modify those licenses.
+
+The list below names the significant ones. It is NOT the complete set:
+a statically linked binary contains every module it imports, directly or
+not, and LICENSE-THIRD-PARTY reproduces every one of their licenses
+verbatim, with the NOTICE files they ship. That file is generated from
+what the binaries actually link rather than maintained by hand
+(scripts/gen-third-party-licenses.py).
+
+  github.com/lightwebinc/shard-common            Apache License 2.0
+  github.com/prometheus/client_golang            Apache License 2.0
+
+Both LICENSE-THIRD-PARTY and this NOTICE must travel with any binary or
+image built from this repository.
