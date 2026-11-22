@@ -54,17 +54,34 @@ func run() error {
 	}
 	flag.Parse()
 
+	bindAddr, err := netip.ParseAddrPort(*bind)
+	if err != nil {
+		return fmt.Errorf("-bind %q: %w", *bind, err)
+	}
+	// Resolve each upstream in the family the bind address sends from. A
+	// name with both kinds of address would otherwise resolve to IPv4,
+	// which a socket bound to an IPv6 address cannot reach.
+	network := "udp"
+	switch ba := bindAddr.Addr().Unmap(); {
+	case ba.Is4():
+		network = "udp4"
+	case !ba.IsUnspecified():
+		network = "udp6"
+	}
 	var ups []netip.AddrPort
 	for _, f := range strings.Split(*upstreams, ",") {
 		f = strings.TrimSpace(f)
 		if f == "" {
 			continue
 		}
-		ua, err := net.ResolveUDPAddr("udp", f)
+		ua, err := net.ResolveUDPAddr(network, f)
 		if err != nil {
-			return fmt.Errorf("-upstream %q: %w", f, err)
+			return fmt.Errorf("-upstream %q, reached from -bind %s: %w", f, *bind, err)
 		}
 		ups = append(ups, ua.AddrPort())
+	}
+	if *lifetime < 0 || *lifetime%time.Second != 0 || *lifetime > time.Duration(interest.LifetimeDefault-1)*time.Second {
+		return fmt.Errorf("-lifetime %s: whole seconds, at most %d, or 0 for the upstream's default", *lifetime, interest.LifetimeDefault-1)
 	}
 	if len(ups) == 0 {
 		flag.Usage()
@@ -99,10 +116,6 @@ func run() error {
 		return fmt.Errorf("no topics given")
 	}
 
-	bindAddr, err := netip.ParseAddrPort(*bind)
-	if err != nil {
-		return fmt.Errorf("-bind %q: %w", *bind, err)
-	}
 	conn, err := net.ListenUDP("udp", net.UDPAddrFromAddrPort(bindAddr))
 	if err != nil {
 		return err
