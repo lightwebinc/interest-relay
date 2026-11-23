@@ -8,8 +8,8 @@ github.com/klauspost/compress v1.20.1 h1:T7kKElXUMXrUJ2E9QhQhxFtcK5rPyLdsGZvdbLM
 github.com/klauspost/compress v1.20.1/go.mod h1:LUdAzn7YLVvxLpc7y3V1m40wESHTgc1422pwwBSKYuI=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
-github.com/lightwebinc/shard-common v0.28.1-0.20261123010736-4d28925a9af4 h1:j72d6K3Oe9SLw4AzoKUZhlk8zzsZlGzO6YH2G1PIe7w=
-github.com/lightwebinc/shard-common v0.28.1-0.20261123010736-4d28925a9af4/go.mod h1:OVCKu7VRtlhDOTb5n/FkDf15xkovglBGLF0quWTjt9U=
+github.com/lightwebinc/shard-common v0.29.0 h1:GPQ5NTDBh1tJRk8m1zpykYcCM0fUrnPlirNxwRNLHjQ=
+github.com/lightwebinc/shard-common v0.29.0/go.mod h1:OVCKu7VRtlhDOTb5n/FkDf15xkovglBGLF0quWTjt9U=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/prometheus/client_golang v1.25.0 h1:cDtW1TcFsMi1RJc8khwCKB4VhzwV04aKqbYtNOXuiK0=
