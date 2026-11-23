@@ -113,3 +113,35 @@ func TestDurations(t *testing.T) {
 		t.Errorf("hold %s, upstream lifetime %s", cfg.RestartHold, cfg.UpstreamLifetime)
 	}
 }
+
+// The distributor is off unless -distribute-listen is set, and then needs
+// the address the upstream reaches it at.
+func TestDistributeFlags(t *testing.T) {
+	base := []string{"-upstream", "[2001:db8::1]:8729", "-allow", "2001:db8:1::/64"}
+	cfg, err := load(t, nil, base...)
+	if err != nil || cfg.DistributeListen != "" {
+		t.Fatalf("off by default: %+v %v", cfg, err)
+	}
+	cfg, err = load(t, map[string]string{"DISTRIBUTE_QUEUE_MIB": "8"}, append(base,
+		"-distribute-listen", "[::]:9171", "-distribute-advertise", "[2001:db8:1::5]:9171", "-distribute-max-object-mib", "4")...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.DistributeListen != "[::]:9171" || cfg.DistributeAdvertise != netip.MustParseAddrPort("[2001:db8:1::5]:9171") ||
+		cfg.DistributeQueueBytes != 8<<20 || cfg.DistributeMaxRecord != 36+4<<20 || cfg.DistributeQueue < 1 {
+		t.Fatalf("parsed %+v", cfg)
+	}
+	for _, c := range []struct {
+		args []string
+		want string
+	}{
+		{[]string{"-distribute-listen", "[::]:9171"}, "-distribute-advertise"},
+		{[]string{"-distribute-listen", "[::]:9171", "-distribute-advertise", "[::]:9171"}, "-distribute-advertise"},
+		{[]string{"-distribute-advertise", "[2001:db8:1::5]:9171"}, "without -distribute-listen"},
+		{[]string{"-distribute-listen", "[::]:9171", "-distribute-advertise", "[2001:db8:1::5]:9171", "-distribute-queue", "0"}, "at least 1"},
+	} {
+		if _, err := load(t, nil, append(base, c.args...)...); err == nil || !strings.Contains(err.Error(), c.want) {
+			t.Errorf("%v: err %v, want it to mention %q", c.args, err, c.want)
+		}
+	}
+}

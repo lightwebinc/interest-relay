@@ -48,6 +48,19 @@ Zero means no limit.
 | `-restart-hold` | `RESTART_HOLD` | automatic | After a start, how long the upstreams keep what the previous run announced. Automatic is a third of `-lifetime-default` plus five seconds, which is how long a sender below that uses the default lifetime takes to check in. A sender that asks a longer lifetime checks in less often (a third of what it asks): when senders below do that, set the hold to a third of the longest lifetime they ask, or what they announce stops after the hold until they next check in. `0s` drops at once. |
 | `-withdraw-on-exit` | `WITHDRAW_ON_EXIT` | `false` | Withdraw everything from the upstreams on exit. Leave it off for a relay that restarts, or every topic stops until the hosts announce again. |
 
+## Distribution
+
+Off unless `-distribute-listen` is set. See
+[Distribution](architecture.md#distribution).
+
+| Flag | Environment | Default | Meaning |
+|---|---|---|---|
+| `-distribute-listen` | `DISTRIBUTE_LISTEN` | empty | The TCP address the consumer's lane is delivered to. Set, the relay ends the lane and sends each record on to the hosts below that asked for its topic at a delivery address. Empty, the relay is control only. |
+| `-distribute-advertise` | `DISTRIBUTE_ADVERTISE` | empty | Required with `-distribute-listen`: the address and port the upstream reaches `-distribute-listen` at, announced upward as this relay's delivery address. The consumer's lane must be provisioned to it. |
+| `-distribute-queue` | `DISTRIBUTE_QUEUE` | `1024` | Records that may wait for one host. Beyond it the host's records are shed. |
+| `-distribute-queue-mib` | `DISTRIBUTE_QUEUE_MIB` | `64` | MiB that may wait for one host. Beyond it the host's records are shed, except that a larger record still goes to a host with nothing waiting. |
+| `-distribute-max-object-mib` | `DISTRIBUTE_MAX_OBJECT_MIB` | `64` | The largest object on the lane, in MiB. A longer record means a broken lane, which is closed and counted. |
+
 ## Observability
 
 | Flag | Environment | Default | Meaning |
@@ -76,4 +89,21 @@ interest-relay \
   -listen   '[2001:db8:b::1]:8729' \
   -upstream '[2001:db8:f::a]:8729,[2001:db8:f::b]:8729' \
   -allow    '2001:db8:b::/64'
+```
+
+The relay on the customer edge, distributing: the consumer's lane is
+provisioned to `[2001:db8:f::2]:9171`, and the relay sends it on to the
+hosts in `2001:db8:c::/48` that name their own lanes:
+
+```sh
+interest-relay \
+  -listen   '[2001:db8:b::1]:8729' \
+  -upstream '[2001:db8:f::1]:8729' \
+  -allow    '2001:db8:c::/48' \
+  -distribute-listen    '[2001:db8:f::2]:9171' \
+  -distribute-advertise '[2001:db8:f::2]:9171'
+
+# On a host: two topics, delivered to this host's lane.
+interest-announce -upstream '[2001:db8:b::1]:8729' \
+  -deliver-to '[2001:db8:c:1::10]:9171' tm_example tm_other
 ```

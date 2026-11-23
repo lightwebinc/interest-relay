@@ -47,6 +47,7 @@ func run() error {
 		withdraw  = flag.Bool("withdraw-on-exit", true, "withdraw everything on exit")
 		quiet     = flag.Bool("quiet", false, "print only the summary lines")
 		report    = flag.Duration("report", 5*time.Second, "how often to print the summary lines")
+		deliverTo = flag.String("deliver-to", "", "host:port to have the topics delivered to, as a stream of delivery records: a delivery address with every topic. A distributing relay sends them there; an edge answers address_not_honored and delivers as provisioned")
 	)
 	flag.Usage = func() {
 		_, _ = fmt.Fprintf(flag.CommandLine.Output(), "usage: interest-announce -upstream host:port[,host:port] [flags] topic...\n")
@@ -137,8 +138,21 @@ func run() error {
 			}
 		},
 	})
+	var ext []byte
+	if *deliverTo != "" {
+		ap, err := netip.ParseAddrPort(*deliverTo)
+		if err != nil || ap.Port() == 0 {
+			return fmt.Errorf("-deliver-to %q: an address and a port", *deliverTo)
+		}
+		d := interest.Delivery{Kind: interest.DeliverUnicast, Encoding: interest.EncodeRecords, Addr: ap.Addr(), Port: ap.Port()}
+		v, err := d.AppendValue(nil)
+		if err != nil {
+			return fmt.Errorf("-deliver-to %q: %w", *deliverTo, err)
+		}
+		ext = interest.AppendTLV(nil, interest.ExtDelivery, v)
+	}
 	for _, t := range topics {
-		c.Add(t)
+		c.Set(t, ext)
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

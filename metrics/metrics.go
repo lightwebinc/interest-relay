@@ -35,6 +35,9 @@ type collector struct {
 	senders, held, live, wanted, unserved, hops, ready                         *prometheus.Desc
 	upReachable, upSynced, upHolding, upHeld, upTracked, upInFlight            *prometheus.Desc
 	upSent, upAcks, upEvents                                                   *prometheus.Desc
+	// The distributor's, exported only when the relay distributes.
+	deliveries, dLanes, dRecordsIn, dBytesIn, dUnrouted, dMalformed, dRoutes    *prometheus.Desc
+	hConnected, hTopics, hSent, hSentBytes, hShed, hDials, hDialErrors, hQueued *prometheus.Desc
 }
 
 // NewCollector returns a collector that reads r at scrape time.
@@ -76,6 +79,22 @@ func NewCollector(r *relay.Relay) prometheus.Collector {
 		upEvents: d("upstream_events_total",
 			"Things that went other than plainly: timeout (a datagram went unanswered), sync (a full replay started), token (a new token adopted: first contact or the upstream restarted), stale (the upstream had already applied a later datagram), mismatch (the upstream's set differed from the one expected), busy (the upstream refused for now), poke (the upstream asked for a digest), ignored (an answer that matched nothing in flight).",
 			"upstream", "event"),
+		deliveries: d("delivery_addresses", "Delivery addresses honored now, (topic, host) pairs held by at least one sender. The distributor's routes."),
+		dLanes:     d("distributor_lanes", "Lane connections open now: the edge, or a distributing relay above, delivering to -distribute-listen."),
+		dRecordsIn: d("distributor_records_in_total", "Delivery records read from the lane."),
+		dBytesIn:   d("distributor_bytes_in_total", "Bytes of delivery records read from the lane."),
+		dUnrouted:  d("distributor_records_unrouted_total", "Records whose topic no host below asked for at an address."),
+		dMalformed: d("distributor_lanes_malformed_total", "Lanes closed because a record's length was zero or over the bound."),
+		dRoutes:    d("distributor_routes", "(topic, host) routes now."),
+		hConnected: d("distributor_host_connected", "1 when the stream to the host is open.", "host"),
+		hTopics:    d("distributor_host_topics", "Topics routed to the host.", "host"),
+		hSent:      d("distributor_host_records_sent_total", "Records written to the host.", "host"),
+		hSentBytes: d("distributor_host_bytes_sent_total", "Bytes written to the host.", "host"),
+		hShed: d("distributor_host_records_shed_total",
+			"Records the host did not get: its queue was full, it could not be reached, or its stream failed. Delivery is at most once, as on the lane.", "host"),
+		hDials:      d("distributor_host_dials_total", "Connection attempts to the host.", "host"),
+		hDialErrors: d("distributor_host_dial_errors_total", "Connection attempts to the host that failed.", "host"),
+		hQueued:     d("distributor_host_queued_bytes", "Bytes waiting for the host now.", "host"),
 	}
 }
 
@@ -84,6 +103,8 @@ func (c *collector) Describe(ch chan<- *prometheus.Desc) {
 		c.buildInfo, c.datagrams, c.ignored, c.tokens, c.messages, c.changes, c.refused, c.resyncs,
 		c.senders, c.held, c.live, c.wanted, c.unserved, c.hops, c.ready,
 		c.upReachable, c.upSynced, c.upHolding, c.upHeld, c.upTracked, c.upInFlight, c.upSent, c.upAcks, c.upEvents,
+		c.deliveries, c.dLanes, c.dRecordsIn, c.dBytesIn, c.dUnrouted, c.dMalformed, c.dRoutes,
+		c.hConnected, c.hTopics, c.hSent, c.hSentBytes, c.hShed, c.hDials, c.hDialErrors, c.hQueued,
 	} {
 		ch <- d
 	}
@@ -112,6 +133,27 @@ func (c *collector) Collect(ch chan<- prometheus.Metric) {
 
 	gauge(c.buildInfo, 1, Version)
 	st := c.r.Receiver().Stats()
+	if dist := c.r.Distributor(); dist != nil {
+		ds := dist.Stats()
+		gauge(c.deliveries, float64(st.Deliveries))
+		gauge(c.dLanes, float64(ds.Lanes))
+		counter(c.dRecordsIn, ds.RecordsIn)
+		counter(c.dBytesIn, ds.BytesIn)
+		counter(c.dUnrouted, ds.Unrouted)
+		counter(c.dMalformed, ds.Malformed)
+		gauge(c.dRoutes, float64(ds.Routes))
+		for _, h := range ds.Hosts {
+			a := h.Addr.String()
+			gauge(c.hConnected, flag(h.Connected), a)
+			gauge(c.hTopics, float64(h.Topics), a)
+			counter(c.hSent, h.Sent, a)
+			counter(c.hSentBytes, h.SentBytes, a)
+			counter(c.hShed, h.Shed, a)
+			counter(c.hDials, h.Dials, a)
+			counter(c.hDialErrors, h.DialErrors, a)
+			gauge(c.hQueued, float64(h.Queued), a)
+		}
+	}
 	counter(c.datagrams, st.Datagrams)
 	counter(c.ignored, st.Malformed, "malformed")
 	counter(c.ignored, st.Unidentified, "unidentified")

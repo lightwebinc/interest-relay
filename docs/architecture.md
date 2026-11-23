@@ -116,11 +116,75 @@ a withdrawn topic from living on in the ring. The refusal is counted
 (`bir_messages_total{outcome="hop_limit"}`); any value above zero means the
 relays are configured in a ring.
 
+## Distribution
+
+Off by default. With `-distribute-listen` set, the relay also carries
+objects: it ends the consumer's lane and sends each record on to the hosts
+below that asked for its topic.
+
+```text
+                          ┌─▶ h1   the records of h1's topics
+ edge ══ lane ══▶ relay ──┼─▶ h2   the records of h2's topics
+                          └─✗ h3   named an address it may not name
+```
+
+A host asks for delivery by naming a delivery address with its topics: a
+unicast stream of delivery records, to a host and port
+(`interest-announce -deliver-to`). The relay answers:
+
+| The host names | The relay |
+|---|---|
+| its own address, or one inside the `-allow` prefix it announces from | keeps the topic and the address (`ok`) and sends the topic's records there |
+| any other address | refuses the topic (`bad_address`): an unsigned datagram must not point a paid stream at a host outside the sender's prefix |
+| another kind of delivery (a multicast group, or frames) | keeps the topic and drops the address (`address_not_honored`) |
+| no address | keeps the topic; the host gets no records from the relay, which now ends the lane |
+
+Inside one `-allow` prefix a sender may name any host, so the prefixes
+should be no wider than the trust between the hosts in them.
+
+Upward, the relay names its own lane (`-distribute-advertise`) with the
+union. An edge does not honor a delivery address and delivers as
+provisioned, so the consumer's lane must be provisioned to that address. A
+distributing relay above does honor it, so distributing relays can be
+stacked.
+
+Each record that arrives on the lane is written, unchanged, to every host
+that asked for its topic, on one TCP stream per host. A record that no host
+asked for is counted and dropped. Routes follow interest: a host's records
+start when its address is honored and stop when its topics are withdrawn
+or lapse. Two senders that name the same address for a topic make one
+route, which stays until the second lets go.
+
+Delivery is at most once, as on the lane. Each host has a queue, bounded in
+records and in bytes (`-distribute-queue`, `-distribute-queue-mib`). A
+host's stream opens when its first record arrives. A host that falls behind
+loses what does not fit its queue; a record larger than the byte bound
+still goes to a host with nothing waiting. While a host cannot be reached
+its records are shed, and it is dialed again with a backoff of up to ten
+seconds. A host that takes longer than ten seconds to accept a megabyte has
+its stream closed, and is dialed again; one that reads slowly but steadily
+keeps its stream, however large the record. All of it is counted
+(`bir_distributor_host_records_shed_total`), and the lane and the other
+hosts never wait for one host.
+
+What waits for a host takes up to `-distribute-queue-mib`, or one record
+when a record is larger, besides the record being written to it. A sender
+names at most one address for each topic
+it holds, so `-max-senders` and `-max-topics-per-sender` bound the number
+of hosts.
+
+The lane listener checks no source address. As for any lane endpoint, let
+only the delivery edge, or the distributing relay above, reach
+`-distribute-listen`.
+
 ## What the relay does not do
 
-- It carries no objects. Delivery reaches the consumer where the
-  consumer's lane ends, as it does without a relay.
-- It does not honor a delivery address. A sender that names one is told so
-  and its interest is still held.
+- Unless it distributes, it carries no objects: delivery reaches the
+  consumer where the consumer's lane ends, as it does without a relay.
+- Unless it distributes, it does not honor a delivery address. A sender
+  that names one is told so (`address_not_honored`) and its interest is
+  still held.
+- Distributing, it does not store, reorder or repair a record, and it sends
+  only to unicast hosts, never to a multicast group.
 - It does not discover its upstream. The upstream is configuration.
 - It keeps nothing on disk.
