@@ -401,8 +401,9 @@ type distPolicy struct{ *policy }
 // Honor keeps a delivery address only for what the distributor sends, a
 // unicast stream of delivery records, and only where the sender may send it:
 // the sender's own address, or one inside the prefix the sender announces
-// from. Anything wider would let an unsigned datagram
-// point a paid stream at someone else's host.
+// from. Anything wider would let an unsigned datagram point a paid stream
+// at a host outside the sender's prefix. Inside a prefix any host may be
+// named, so the prefixes are as narrow as the trust between their hosts.
 func (p *distPolicy) Honor(_ string, src netip.AddrPort, _ interest.TopicID, d interest.Delivery) interest.Status {
 	if d.Kind != interest.DeliverUnicast || d.Encoding != interest.EncodeRecords {
 		return interest.StatusAddressNotHonored

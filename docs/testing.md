@@ -12,8 +12,10 @@ they would on separate machines. They cover a chain of two relays, the
 delivered scope reaching a host, an edge restart, a relay restart with and
 without the hold, who may announce, a ring of three relays, and a
 distributing relay. The distributor's own tests cover fan-out, a slow host
-being shed, a host that restarts, a malformed lane, and that nothing
-outlives a stop.
+being shed, a host that restarts, a malformed lane, a record larger than a
+host's queue, a host that reads slowly but steadily, a stop while a host
+is being dialed, errors accepting the lane, and that nothing outlives a
+stop.
 
 The protocol's own tests are in `shard-common/interest`. They run the two
 halves of the protocol against each other on a simulated network with loss,

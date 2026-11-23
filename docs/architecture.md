@@ -135,9 +135,12 @@ unicast stream of delivery records, to a host and port
 | The host names | The relay |
 |---|---|
 | its own address, or one inside the `-allow` prefix it announces from | keeps the topic and the address (`ok`) and sends the topic's records there |
-| any other address | refuses the topic (`bad_address`): an unsigned datagram must not point a paid stream at someone else's host |
+| any other address | refuses the topic (`bad_address`): an unsigned datagram must not point a paid stream at a host outside the sender's prefix |
 | another kind of delivery (a multicast group, or frames) | keeps the topic and drops the address (`address_not_honored`) |
 | no address | keeps the topic; the host gets no records from the relay, which now ends the lane |
+
+Inside one `-allow` prefix a sender may name any host, so the prefixes
+should be no wider than the trust between the hosts in them.
 
 Upward, the relay names its own lane (`-distribute-advertise`) with the
 union. An edge does not honor a delivery address and delivers as
@@ -155,16 +158,19 @@ route, which stays until the second lets go.
 Delivery is at most once, as on the lane. Each host has a queue, bounded in
 records and in bytes (`-distribute-queue`, `-distribute-queue-mib`). A
 host's stream opens when its first record arrives. A host that falls behind
-loses what does not fit its queue. While a host cannot be reached its
-records are shed, and it is dialed again with a backoff of up to ten
-seconds. A write that takes longer than ten seconds closes the host's
-stream, which is dialed again. All of it is counted
+loses what does not fit its queue; a record larger than the byte bound
+still goes to a host with nothing waiting. While a host cannot be reached
+its records are shed, and it is dialed again with a backoff of up to ten
+seconds. A host that takes longer than ten seconds to accept a megabyte has
+its stream closed, and is dialed again; one that reads slowly but steadily
+keeps its stream, however large the record. All of it is counted
 (`bir_distributor_host_records_shed_total`), and the lane and the other
 hosts never wait for one host.
 
-What waits for the hosts takes up to `-distribute-queue-mib` for each. A
-sender names at most one address for each topic it holds, so `-max-senders`
-and `-max-topics-per-sender` bound the number of hosts.
+What waits for a host takes up to `-distribute-queue-mib`, or one record
+when a record is larger. A sender names at most one address for each topic
+it holds, so `-max-senders` and `-max-topics-per-sender` bound the number
+of hosts.
 
 The lane listener checks no source address. As for any lane endpoint, let
 only the delivery edge, or the distributing relay above, reach

@@ -58,7 +58,7 @@ Off unless `-distribute-listen` is set. See
 | `-distribute-listen` | `DISTRIBUTE_LISTEN` | empty | The TCP address the consumer's lane is delivered to. Set, the relay ends the lane and sends each record on to the hosts below that asked for its topic at a delivery address. Empty, the relay is control only. |
 | `-distribute-advertise` | `DISTRIBUTE_ADVERTISE` | empty | Required with `-distribute-listen`: the address and port the upstream reaches `-distribute-listen` at, announced upward as this relay's delivery address. The consumer's lane must be provisioned to it. |
 | `-distribute-queue` | `DISTRIBUTE_QUEUE` | `1024` | Records that may wait for one host. Beyond it the host's records are shed. |
-| `-distribute-queue-mib` | `DISTRIBUTE_QUEUE_MIB` | `64` | MiB that may wait for one host. Beyond it the host's records are shed. |
+| `-distribute-queue-mib` | `DISTRIBUTE_QUEUE_MIB` | `64` | MiB that may wait for one host. Beyond it the host's records are shed, except that a larger record still goes to a host with nothing waiting. |
 | `-distribute-max-object-mib` | `DISTRIBUTE_MAX_OBJECT_MIB` | `64` | The largest object on the lane, in MiB. A longer record means a broken lane, which is closed and counted. |
 
 ## Observability

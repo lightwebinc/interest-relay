@@ -42,10 +42,12 @@ const (
 	// is shed at whichever bound it reaches first, so a queue of large
 	// objects cannot hold the relay's memory.
 	DefaultQueueBytes = 64 << 20
-	// writeTimeout is how long one record may take to write. A host that
-	// stops reading is disconnected and dialed again, instead of holding
-	// its queue forever.
+	// writeTimeout is how long a host may take to accept writeChunk bytes. A
+	// host that stops reading is disconnected and dialed again, instead of
+	// holding its queue forever; one that reads slowly but steadily keeps
+	// its stream, however large the record.
 	writeTimeout = 10 * time.Second
+	writeChunk   = 1 << 20
 )
 
 // Config configures a [Distributor].
@@ -67,8 +69,9 @@ type Config struct {
 
 // Distributor is a running distributor. Build one with [New].
 type Distributor struct {
-	cfg Config
-	log *slog.Logger
+	cfg  Config
+	log  *slog.Logger
+	dial func(ctx context.Context, network, addr string) (net.Conn, error)
 
 	mu     sync.RWMutex
 	routes map[interest.TopicID][]*host
@@ -104,6 +107,7 @@ func New(cfg Config) *Distributor {
 	return &Distributor{
 		cfg:    cfg,
 		log:    cfg.Logger,
+		dial:   (&net.Dialer{Timeout: cfg.DialTimeout}).DialContext,
 		routes: make(map[interest.TopicID][]*host),
 		hosts:  make(map[netip.AddrPort]*host),
 	}
@@ -186,18 +190,32 @@ func (d *Distributor) ServeListener(ctx context.Context, ln net.Listener) error 
 		wg.Wait()
 		d.stopHosts()
 	}()
+	var delay time.Duration // since the last failed accept
 	for {
 		c, err := ln.Accept()
 		if err != nil {
 			if ctx.Err() != nil {
 				return nil
 			}
-			var ne net.Error
-			if errors.As(err, &ne) && ne.Timeout() {
-				continue
+			if errors.Is(err, net.ErrClosed) {
+				return err
 			}
-			return err
+			// Anything else (out of descriptors, say) passes: wait and accept
+			// again, as net/http does, rather than end the relay with it.
+			if delay == 0 {
+				delay = 5 * time.Millisecond
+			} else if delay *= 2; delay > time.Second {
+				delay = time.Second
+			}
+			d.log.Warn("DISTRIBUTOR: accepting a lane failed; trying again", "err", err, "retry_in", delay)
+			select {
+			case <-ctx.Done():
+				return nil
+			case <-time.After(delay):
+			}
+			continue
 		}
+		delay = 0
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -289,10 +307,12 @@ func (d *Distributor) startHost(addr netip.AddrPort) *host {
 }
 
 // offer queues a record for the host, or sheds it when the host is behind.
-// It never blocks: the lane does not wait for any one host.
+// A record always fits an empty queue, so the largest record the lane may
+// carry reaches a host that keeps up, whatever the queue's bound. It never
+// blocks: the lane does not wait for any one host.
 func (h *host) offer(rec []byte) {
 	n := int64(len(rec))
-	if h.queued.Add(n) > h.maxBytes {
+	if q := h.queued.Add(n); q > h.maxBytes && q != n {
 		h.queued.Add(-n)
 		h.shed.Add(1)
 		return
@@ -309,10 +329,14 @@ func (h *host) offer(rec []byte) {
 // route to it goes.
 func (d *Distributor) runHost(h *host) {
 	defer close(h.done)
-	// Stopping must not wait for a write to a host that stopped reading:
-	// closing the stream ends the write at once.
+	// Stopping must not wait for a dial to a host that does not answer, or
+	// for a write to one that stopped reading: cancelling ends the dial, and
+	// closing the stream ends the write, at once.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	go func() {
 		<-h.stop
+		cancel()
 		if c := h.cur.Load(); c != nil {
 			_ = (*c).Close()
 		}
@@ -324,7 +348,6 @@ func (d *Distributor) runHost(h *host) {
 		}
 		h.connected.Store(false)
 	}()
-	dialer := net.Dialer{Timeout: d.cfg.DialTimeout}
 	backoff := 500 * time.Millisecond
 	for {
 		var rec []byte
@@ -336,7 +359,7 @@ func (d *Distributor) runHost(h *host) {
 		}
 		for conn == nil {
 			h.dials.Add(1)
-			c, err := dialer.Dial("tcp", h.addr.String())
+			c, err := d.dial(ctx, "tcp", h.addr.String())
 			if err == nil {
 				conn, backoff = c, 500*time.Millisecond
 				h.cur.Store(&c)
@@ -372,8 +395,7 @@ func (d *Distributor) runHost(h *host) {
 		if rec == nil {
 			continue
 		}
-		_ = conn.SetWriteDeadline(time.Now().Add(writeTimeout))
-		if _, err := conn.Write(rec); err != nil {
+		if err := writeRecord(conn, rec, writeChunk, writeTimeout); err != nil {
 			d.log.Debug("distributor: a host's stream failed", "host", h.addr.String(), "err", err)
 			h.shed.Add(1)
 			h.cur.Store(nil)
@@ -387,6 +409,21 @@ func (d *Distributor) runHost(h *host) {
 	}
 }
 
+// writeRecord writes rec to c, allowing timeout for each chunk of it.
+func writeRecord(c net.Conn, rec []byte, chunk int, timeout time.Duration) error {
+	for len(rec) > 0 {
+		n := min(len(rec), chunk)
+		if err := c.SetWriteDeadline(time.Now().Add(timeout)); err != nil {
+			return err
+		}
+		if _, err := c.Write(rec[:n]); err != nil {
+			return err
+		}
+		rec = rec[n:]
+	}
+	return nil
+}
+
 func (d *Distributor) stopHosts() {
 	d.mu.Lock()
 	d.closed = true
@@ -397,8 +434,11 @@ func (d *Distributor) stopHosts() {
 	d.hosts = make(map[netip.AddrPort]*host)
 	d.routes = make(map[interest.TopicID][]*host)
 	d.mu.Unlock()
+	// All at once: each host's stop is prompt, and none waits on another's.
 	for _, h := range hs {
 		close(h.stop)
+	}
+	for _, h := range hs {
 		<-h.done
 	}
 }

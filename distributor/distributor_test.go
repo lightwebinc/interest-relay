@@ -5,10 +5,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"errors"
 	"io"
 	"net"
 	"net/netip"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -215,16 +217,22 @@ func TestUnroutedAndMalformed(t *testing.T) {
 // slow down for it.
 func TestSlowHostIsShed(t *testing.T) {
 	fast, stalled := newSink(t, true), newSink(t, false)
-	d, lane := start(t, Config{Queue: 4, QueueBytes: 1 << 20})
+	const queue = 4
+	d, lane := start(t, Config{Queue: queue, QueueBytes: 1 << 20})
 	x := tid("x")
 	d.Route(x, route(fast.addr()), true)
 	d.Route(x, route(stalled.addr()), true)
 	payload := string(make([]byte, 64<<10))
 	const n = 400 // 25 MiB: more than a stalled connection's buffers hold
-	for i := 0; i < n; i++ {
-		write(t, lane, rec("x", payload))
+	for i := 0; i < n; i += queue {
+		for range queue {
+			write(t, lane, rec("x", payload))
+		}
+		// Paced by the host that reads, so that its own queue never
+		// overflows. Were the lane held up by the stalled host, this would
+		// time out.
+		fast.waitFor(t, i+queue)
 	}
-	fast.waitFor(t, n)
 	deadline := time.Now().Add(5 * time.Second)
 	for {
 		var shed uint64
@@ -303,6 +311,160 @@ func TestNoHostOutlivesServe(t *testing.T) {
 	if st := d.Stats(); st.Routes != 0 || len(st.Hosts) != 0 {
 		t.Fatalf("after Serve failed: %+v", st)
 	}
+}
+
+// A record larger than the queue's byte bound still reaches a host that
+// keeps up. Under the defaults, that is the largest object the lane takes.
+func TestRecordLargerThanTheQueue(t *testing.T) {
+	a := newSink(t, true)
+	d, lane := start(t, Config{QueueBytes: 1 << 10})
+	d.Route(tid("x"), route(a.addr()), true)
+	big := rec("x", string(make([]byte, 4<<10)))
+	write(t, lane, big)
+	if got := a.waitFor(t, 1); !bytes.Equal(got[0], big) {
+		t.Fatalf("got %d bytes, want %d", len(got[0]), len(big))
+	}
+
+	h := &host{q: make(chan []byte, 1), maxBytes: DefaultQueueBytes}
+	h.offer(make([]byte, DefaultMaxRecord))
+	if h.shed.Load() != 0 || len(h.q) != 1 {
+		t.Fatal("the largest record the lane takes was shed under the default bounds")
+	}
+	h.offer(make([]byte, 64))
+	if h.shed.Load() != 1 {
+		t.Fatal("a record queued behind a full queue was not shed")
+	}
+}
+
+// A host that reads slowly but steadily gets a record that takes far longer
+// than one write timeout. A host that stops reading is cut after one.
+func TestWriteRecordPaced(t *testing.T) {
+	record := make([]byte, 1<<20)
+	steady := func() net.Conn {
+		w, r := net.Pipe()
+		t.Cleanup(func() { _ = w.Close(); _ = r.Close() })
+		go func() {
+			buf := make([]byte, 16<<10)
+			for {
+				if _, err := io.ReadFull(r, buf); err != nil {
+					return
+				}
+				time.Sleep(10 * time.Millisecond) // about 40 ms a chunk, 640 ms in all
+			}
+		}()
+		return w
+	}
+	const timeout = 300 * time.Millisecond
+	began := time.Now()
+	if err := writeRecord(steady(), record, 64<<10, timeout); err != nil {
+		t.Fatalf("a steady reader was cut after %s: %v", time.Since(began), err)
+	}
+	if took := time.Since(began); took < timeout {
+		t.Fatalf("the record took %s, under one timeout: the test shows nothing", took)
+	}
+	// One deadline for the whole record, as before chunking, cuts the same
+	// reader.
+	if err := writeRecord(steady(), record, len(record), timeout); err == nil {
+		t.Fatal("one deadline for the whole record did not cut a reader that slow")
+	}
+
+	w2, r2 := net.Pipe()
+	defer func() { _ = w2.Close(); _ = r2.Close() }()
+	if err := writeRecord(w2, record, 64<<10, 100*time.Millisecond); err == nil {
+		t.Fatal("a host that reads nothing was not cut")
+	}
+}
+
+// Stopping does not wait for a dial to a host that does not answer.
+func TestStopDoesNotWaitForADial(t *testing.T) {
+	d := New(Config{})
+	dialing := make(chan struct{}, 3)
+	d.dial = func(ctx context.Context, _, _ string) (net.Conn, error) {
+		dialing <- struct{}{}
+		<-ctx.Done() // a host that never answers
+		return nil, ctx.Err()
+	}
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	done := make(chan error, 1)
+	go func() { done <- d.ServeListener(ctx, ln) }()
+	for i := range 3 {
+		d.Route(tid("x"), route(netip.AddrPortFrom(netip.MustParseAddr("192.0.2.1"), uint16(9000+i))), true)
+	}
+	lane, err := net.Dial("tcp", ln.Addr().String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = lane.Close() }()
+	write(t, lane, rec("x", "every host dials"))
+	for range 3 {
+		select {
+		case <-dialing:
+		case <-time.After(5 * time.Second):
+			t.Fatal("the hosts did not dial")
+		}
+	}
+	began := time.Now()
+	cancel()
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatal(err)
+		}
+		if took := time.Since(began); took > time.Second {
+			t.Fatalf("stopping took %s", took)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("stopping waited for the dials")
+	}
+}
+
+// flakyListener fails its first Accepts, as a listener out of descriptors
+// does.
+type flakyListener struct {
+	net.Listener
+	fails atomic.Int32
+}
+
+func (l *flakyListener) Accept() (net.Conn, error) {
+	if l.fails.Add(-1) >= 0 {
+		return nil, errors.New("accept: too many open files")
+	}
+	return l.Listener.Accept()
+}
+
+// An error accepting a lane, other than the listener closing, is waited
+// out. It does not end the distributor, and with it the relay.
+func TestAcceptErrorIsWaitedOut(t *testing.T) {
+	a := newSink(t, true)
+	d := New(Config{})
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fl := &flakyListener{Listener: ln}
+	fl.fails.Store(3)
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() { done <- d.ServeListener(ctx, fl) }()
+	t.Cleanup(func() {
+		cancel()
+		if err := <-done; err != nil {
+			t.Error(err)
+		}
+	})
+	d.Route(tid("x"), route(a.addr()), true)
+	lane, err := net.Dial("tcp", ln.Addr().String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = lane.Close() }()
+	write(t, lane, rec("x", "after the errors"))
+	a.waitFor(t, 1)
 }
 
 // Only a unicast stream of delivery records is distributed.
