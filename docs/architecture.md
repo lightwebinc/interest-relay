@@ -168,7 +168,8 @@ keeps its stream, however large the record. All of it is counted
 hosts never wait for one host.
 
 What waits for a host takes up to `-distribute-queue-mib`, or one record
-when a record is larger. A sender names at most one address for each topic
+when a record is larger, besides the record being written to it. A sender
+names at most one address for each topic
 it holds, so `-max-senders` and `-max-topics-per-sender` bound the number
 of hosts.
 

@@ -349,12 +349,12 @@ func TestWriteRecordPaced(t *testing.T) {
 				if _, err := io.ReadFull(r, buf); err != nil {
 					return
 				}
-				time.Sleep(10 * time.Millisecond) // about 40 ms a chunk, 640 ms in all
+				time.Sleep(30 * time.Millisecond) // about 120 ms a chunk, 1.9 s in all
 			}
 		}()
 		return w
 	}
-	const timeout = 300 * time.Millisecond
+	const timeout = time.Second
 	began := time.Now()
 	if err := writeRecord(steady(), record, 64<<10, timeout); err != nil {
 		t.Fatalf("a steady reader was cut after %s: %v", time.Since(began), err)
