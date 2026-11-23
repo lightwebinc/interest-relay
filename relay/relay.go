@@ -8,7 +8,9 @@
 // upstreams: a higher relay, or the delivery edge at the far end of the
 // consumer's tunnel. The same datagrams are used at every hop.
 //
-// The relay is control only. It carries no objects.
+// A relay is control only unless Config.Distribute is set: then it also
+// ends the consumer's lane and sends each object on to the senders below that
+// announced its topic with a delivery address (package distributor).
 //
 // The package is the daemon's core and is meant to be embedded: a process
 // that already sits where a relay would (a bridge, a gateway, a router) can
@@ -26,6 +28,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/lightwebinc/interest-relay/distributor"
 	"github.com/lightwebinc/shard-common/interest"
 )
 
@@ -68,6 +71,16 @@ type Config struct {
 	// WithdrawOnExit withdraws everything from the upstreams when the
 	// relay stops. Leave it off for a relay that will be started again.
 	WithdrawOnExit bool
+	// Distribute turns on the unicast distributor: the relay ends the lane
+	// delivered to Distribute.Listen and sends each record on to the senders
+	// below that announced its topic with a delivery address it honors. Nil
+	// is control only.
+	Distribute *distributor.Config
+	// Advertise is the delivery address the relay announces upward in
+	// distributor mode: where Distribute.Listen is reached. An edge does not
+	// honor an address and delivers as provisioned, so the consumer's lane
+	// must be provisioned to it; a distributing relay above honors it.
+	Advertise netip.AddrPort
 	// Logger defaults to slog.Default.
 	Logger *slog.Logger
 }
@@ -87,6 +100,9 @@ type Relay struct {
 	pokeCh  chan struct{}
 	hops    atomic.Uint32
 	started time.Time
+
+	dist      *distributor.Distributor // nil: control only
+	advertise []byte                   // the delivery extension announced upward
 }
 
 // New builds a relay. It does not open sockets or start goroutines.
@@ -111,6 +127,22 @@ func New(cfg Config) (*Relay, error) {
 	}
 	if cfg.Logger == nil {
 		cfg.Logger = slog.Default()
+	}
+	var advertise []byte
+	if cfg.Distribute != nil {
+		if !cfg.Advertise.IsValid() || cfg.Advertise.Port() == 0 || cfg.Advertise.Addr().IsUnspecified() {
+			return nil, errors.New("relay: a distributing relay needs the address its lane is delivered to (Advertise)")
+		}
+		d := interest.Delivery{Kind: interest.DeliverUnicast, Encoding: interest.EncodeRecords,
+			Addr: cfg.Advertise.Addr(), Port: cfg.Advertise.Port()}
+		v, err := d.AppendValue(nil)
+		if err != nil {
+			return nil, fmt.Errorf("relay: Advertise: %w", err)
+		}
+		advertise = interest.AppendTLV(nil, interest.ExtDelivery, v)
+		if cfg.Distribute.Logger == nil {
+			cfg.Distribute.Logger = cfg.Logger
+		}
 	}
 	r := &Relay{
 		cfg:       cfg,
@@ -141,8 +173,17 @@ func New(cfg Config) (*Relay, error) {
 	})
 	r.cli.SetHops(1)
 	r.hops.Store(1)
+	var pol interest.Policy = (*policy)(r)
+	var onDelivery func(interest.TopicID, interest.Delivery, bool)
+	if cfg.Distribute != nil {
+		r.dist = distributor.New(*cfg.Distribute)
+		r.advertise = advertise
+		pol = &distPolicy{(*policy)(r)}
+		onDelivery = r.dist.Route
+	}
 	r.rcv = interest.NewReceiver(interest.ReceiverConfig{
-		Policy:             (*policy)(r),
+		Policy:             pol,
+		OnDelivery:         onDelivery,
 		Lifetimes:          cfg.Lifetimes,
 		MaxHops:            cfg.MaxHops,
 		MaxTopicsPerSender: cfg.MaxTopicsPerSender,
@@ -151,10 +192,10 @@ func New(cfg Config) (*Relay, error) {
 		ChangeBurst:        cfg.ChangeBurst,
 		OnChange: func(_ string, t interest.TopicID, live bool) {
 			// The union changed: say so upstream. A delivery address is
-			// meaningful only to the next hop, and this relay does not
-			// distribute, so none goes up.
+			// meaningful only to the next hop, so a relay that distributes
+			// gives its own, and one that does not gives none.
 			if live {
-				r.cli.Add(t)
+				r.cli.Set(t, r.advertise)
 			} else {
 				r.cli.Remove(t)
 			}
@@ -162,6 +203,9 @@ func New(cfg Config) (*Relay, error) {
 	})
 	return r, nil
 }
+
+// Distributor returns the distributor, or nil for a control-only relay.
+func (r *Relay) Distributor() *distributor.Distributor { return r.dist }
 
 // Receiver returns the downstream half: who announces what. It is the
 // relay's readable table, for a component in the same process that needs to
@@ -220,7 +264,7 @@ func (r *Relay) Serve(ctx context.Context, down, up *net.UDPConn) error {
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	errs := make(chan error, 2)
+	errs := make(chan error, 3)
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -243,6 +287,14 @@ func (r *Relay) Serve(ctx context.Context, down, up *net.UDPConn) error {
 			OnError:        func(err error) { r.log.Debug("upstream socket", "err", err) },
 		})
 	}()
+
+	if r.dist != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			errs <- r.dist.Serve(ctx)
+		}()
+	}
 
 	tick := time.NewTicker(time.Second)
 	defer tick.Stop()
@@ -340,6 +392,34 @@ func (p *policy) Notes(_ string, each func(interest.TopicID, interest.Status) bo
 	p.cli.Unserved(func(t interest.TopicID, st interest.Status) bool {
 		return each(t, downstreamNote(st))
 	})
+}
+
+// distPolicy is a distributing relay's policy: the relay's own, and the
+// redirection rule for the delivery addresses its senders give.
+type distPolicy struct{ *policy }
+
+// Honor keeps a delivery address only for what the distributor sends, a
+// unicast stream of delivery records, and only where the sender may send it:
+// the sender's own address, or one inside the prefix the sender announces
+// from. Anything wider would let an unsigned datagram
+// point a paid stream at someone else's host.
+func (p *distPolicy) Honor(_ string, src netip.AddrPort, _ interest.TopicID, d interest.Delivery) interest.Status {
+	if d.Kind != interest.DeliverUnicast || d.Encoding != interest.EncodeRecords {
+		return interest.StatusAddressNotHonored
+	}
+	if d.Port == 0 {
+		return interest.StatusBadAddress
+	}
+	to, from := d.Addr.Unmap(), src.Addr().Unmap()
+	if to == from {
+		return interest.StatusOK
+	}
+	for _, pfx := range p.cfg.Allow {
+		if pfx.Contains(from) && pfx.Contains(to) {
+			return interest.StatusOK
+		}
+	}
+	return interest.StatusBadAddress
 }
 
 // downstreamNote turns the reason no upstream serves a topic into the note

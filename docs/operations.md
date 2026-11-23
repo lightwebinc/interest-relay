@@ -56,6 +56,30 @@ Each carries an `upstream` label.
 | `bir_upstream_acks_total` | Answers that matched a datagram in flight. |
 | `bir_upstream_events_total{event}` | `timeout`, `sync`, `token`, `stale`, `mismatch`, `busy`, `poke`, `ignored`. |
 
+### Distribution
+
+Exported only when the relay distributes. The per-host series carry a
+`host` label, the host's delivery address, and go away with the host's last
+route.
+
+| Metric | Meaning |
+|---|---|
+| `bir_delivery_addresses` | Delivery addresses honored now: (topic, host) pairs that at least one sender holds. |
+| `bir_distributor_routes` | (topic, host) routes the distributor holds now: the same pairs. |
+| `bir_distributor_lanes` | Lane connections open now. |
+| `bir_distributor_records_in_total` | Delivery records read from the lane. |
+| `bir_distributor_bytes_in_total` | Bytes of those records. |
+| `bir_distributor_records_unrouted_total` | Records whose topic no host asked for at an address. |
+| `bir_distributor_lanes_malformed_total` | Lanes closed for a record of length zero or over `-distribute-max-object-mib`. |
+| `bir_distributor_host_connected{host}` | 1 while the stream to the host is open. |
+| `bir_distributor_host_topics{host}` | Topics routed to the host. |
+| `bir_distributor_host_records_sent_total{host}` | Records written to the host. |
+| `bir_distributor_host_bytes_sent_total{host}` | Bytes written to the host. |
+| `bir_distributor_host_records_shed_total{host}` | Records the host did not get: its queue was full, it could not be reached, or its stream failed. |
+| `bir_distributor_host_dials_total{host}` | Connection attempts to the host. |
+| `bir_distributor_host_dial_errors_total{host}` | Connection attempts to the host that failed. |
+| `bir_distributor_host_queued_bytes{host}` | Bytes waiting for the host now. |
+
 ## Reading the numbers
 
 | You see | It means |
@@ -69,6 +93,11 @@ Each carries an `upstream` label.
 | `bir_topic_changes_total{change="expire"}` rises | Senders are going silent without withdrawing: they died, or their refreshes are not arriving. |
 | `bir_topics_unserved` above 0 | Hosts want topics that no upstream delivers. The hosts have been told. |
 | `bir_topics_refused_total{reason="rate_limited"}` rises | Senders add topics faster than `-change-rate`. They retry by themselves. |
+| `bir_topics_refused_total{reason="bad_address"}` rises | Distributing: senders name delivery addresses that are not their own and not inside their prefix. Their topics are refused and they have been told. |
+| `bir_distributor_host_records_shed_total` rises | The host falls behind or cannot be reached, and loses those records. With `bir_distributor_host_connected` 0 and `bir_distributor_host_dial_errors_total` rising it cannot be reached; otherwise it reads too slowly for its topics. Nothing waits for it. |
+| `bir_distributor_records_unrouted_total` rises | The lane carries topics that no host asked for at an address: hosts that announce without one, or what the lane is provisioned to carry beyond what was announced. |
+| `bir_distributor_lanes_malformed_total` above 0 | Something that is not a lane connected to `-distribute-listen`, or the lane carries objects larger than `-distribute-max-object-mib`. |
+| `bir_distributor_lanes` 0 while hosts expect records | Nothing delivers to the relay. Check that the consumer's lane is provisioned to `-distribute-advertise` and that the edge can reach `-distribute-listen`. |
 
 ## Restarting a relay
 

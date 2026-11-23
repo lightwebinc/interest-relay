@@ -19,6 +19,7 @@ import (
 	"github.com/lightwebinc/shard-common/logging"
 
 	"github.com/lightwebinc/interest-relay/config"
+	"github.com/lightwebinc/interest-relay/distributor"
 	"github.com/lightwebinc/interest-relay/metrics"
 	"github.com/lightwebinc/interest-relay/relay"
 )
@@ -63,6 +64,8 @@ func run() error {
 		MaxHops:            uint8(cfg.MaxHops),
 		RestartHold:        cfg.RestartHold,
 		WithdrawOnExit:     cfg.WithdrawOnExit,
+		Distribute:         distConfig(cfg),
+		Advertise:          cfg.DistributeAdvertise,
 	})
 	if err != nil {
 		return err
@@ -107,4 +110,18 @@ func run() error {
 	wg.Wait()
 	slog.Info("shutdown complete")
 	return err
+}
+
+// distConfig is the distributor's configuration, or nil for a control-only
+// relay.
+func distConfig(cfg *config.Config) *distributor.Config {
+	if cfg.DistributeListen == "" {
+		return nil
+	}
+	return &distributor.Config{
+		Listen:     cfg.DistributeListen,
+		MaxRecord:  cfg.DistributeMaxRecord,
+		Queue:      cfg.DistributeQueue,
+		QueueBytes: cfg.DistributeQueueBytes,
+	}
 }

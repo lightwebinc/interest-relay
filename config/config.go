@@ -15,7 +15,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lightwebinc/interest-relay/distributor"
 	"github.com/lightwebinc/shard-common/interest"
+	"github.com/lightwebinc/shard-common/objfmt"
 )
 
 // Config holds every runtime parameter of the daemon.
@@ -49,6 +51,18 @@ type Config struct {
 	// RestartHold: see relay.Config. Negative means automatic.
 	RestartHold    time.Duration
 	WithdrawOnExit bool
+
+	// DistributeListen turns on the unicast distributor: the TCP address
+	// the consumer's lane is delivered to. Empty is control only.
+	DistributeListen string
+	// DistributeAdvertise is announced upward as this relay's delivery
+	// address in distributor mode: where DistributeListen is reached.
+	DistributeAdvertise netip.AddrPort
+	// DistributeQueue and DistributeQueueBytes bound what waits for one
+	// host; DistributeMaxRecord bounds one record.
+	DistributeQueue      int
+	DistributeQueueBytes int64
+	DistributeMaxRecord  int
 
 	MetricsAddr string
 	InstanceID  string
@@ -86,6 +100,11 @@ func parse(fs *flag.FlagSet, args []string, getenv func(string) string) (*Config
 		maxHops      = fs.Int("max-hops", envInt(getenv, "MAX_HOPS", interest.DefaultMaxHops), "relays a message may have crossed before it is refused")
 		hold         = fs.Duration("restart-hold", envDuration(getenv, "RESTART_HOLD", -1), "after a start, how long the upstreams keep what the previous run announced; negative derives it from -lifetime-default")
 		withdraw     = fs.Bool("withdraw-on-exit", envBool(getenv, "WITHDRAW_ON_EXIT", false), "withdraw everything from the upstreams on exit; leave off for a relay that restarts")
+		distListen   = fs.String("distribute-listen", env("DISTRIBUTE_LISTEN", ""), "TCP address the consumer's lane is delivered to; turns on the unicast distributor, which sends each record on to the senders below that announced its topic with a delivery address. Empty is control only")
+		distAdv      = fs.String("distribute-advertise", env("DISTRIBUTE_ADVERTISE", ""), "host:port announced upward as this relay's delivery address in distributor mode: where -distribute-listen is reached")
+		distQueue    = fs.Int("distribute-queue", envInt(getenv, "DISTRIBUTE_QUEUE", distributor.DefaultQueue), "records that may wait for one host before it is shed")
+		distQueueMiB = fs.Int("distribute-queue-mib", envInt(getenv, "DISTRIBUTE_QUEUE_MIB", distributor.DefaultQueueBytes>>20), "MiB that may wait for one host before it is shed")
+		distMaxMiB   = fs.Int("distribute-max-object-mib", envInt(getenv, "DISTRIBUTE_MAX_OBJECT_MIB", objfmt.DefaultMaxObject>>20), "largest object on the lane, in MiB; a longer record closes the lane")
 		metricsAddr  = fs.String("metrics-addr", env("METRICS_ADDR", ":9600"), "address of the metrics and health listener; empty disables it")
 		instance     = fs.String("instance-id", env("INSTANCE_ID", host), "service.instance.id for logs and metrics")
 		logLevel     = fs.String("log-level", env("LOG_LEVEL", "info"), "debug, info, warn or error")
@@ -150,6 +169,21 @@ func parse(fs *flag.FlagSet, args []string, getenv func(string) string) (*Config
 	}
 	if cfg.MaxTopicsPerSender < 0 || cfg.MaxSenders < 0 || cfg.ChangeRate < 0 || cfg.ChangeBurst < 0 {
 		return nil, errors.New("caps and rates must not be negative")
+	}
+	if *distListen != "" {
+		cfg.DistributeListen = *distListen
+		if cfg.DistributeAdvertise, err = netip.ParseAddrPort(*distAdv); err != nil || cfg.DistributeAdvertise.Port() == 0 ||
+			cfg.DistributeAdvertise.Addr().IsUnspecified() {
+			return nil, fmt.Errorf("-distribute-advertise %q: the address and port the upstream reaches -distribute-listen at", *distAdv)
+		}
+		if *distQueue < 1 || *distQueueMiB < 1 || *distMaxMiB < 1 {
+			return nil, errors.New("-distribute-queue, -distribute-queue-mib and -distribute-max-object-mib must be at least 1")
+		}
+		cfg.DistributeQueue = *distQueue
+		cfg.DistributeQueueBytes = int64(*distQueueMiB) << 20
+		cfg.DistributeMaxRecord = objfmt.BEEFDeliveryHeaderSize + *distMaxMiB<<20
+	} else if *distAdv != "" {
+		return nil, errors.New("-distribute-advertise is set without -distribute-listen")
 	}
 	return cfg, nil
 }

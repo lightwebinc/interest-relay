@@ -10,14 +10,15 @@ all: build tools
 build:                 ## build the relay daemon into build/
 	CGO_ENABLED=0 go build -trimpath -ldflags '$(LDFLAGS)' -o build/$(BIN) .
 
-tools:                 ## build interest-announce and interest-terminus into build/
+tools:                 ## build the test tools (announcer, terminus, lane feed and sink) into build/
 	CGO_ENABLED=0 go build -trimpath -o build/ ./cmd/...
 
 test:                  ## unit and loopback tests, with the race detector
 	go test -race -count=1 $(PKG)
 
-test-netns:            ## multi-hop test in network namespaces (needs user namespaces or root)
+test-netns:            ## multi-hop and distribution tests in network namespaces (needs user namespaces or root)
 	test/netns/chain.sh
+	test/netns/distribute.sh
 
 lint:                  ## golangci-lint
 	golangci-lint run $(PKG)
