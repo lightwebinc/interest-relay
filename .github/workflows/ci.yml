@@ -24,3 +24,5 @@ jobs:
       gofmt: true
       tidy-check: true
       licences-check: true
+      # Without a version the shared workflow skips its lint job.
+      golangci-lint-version: v2.14.0
