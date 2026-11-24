@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="372" viewBox="0 0 800 372" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Four shapes: no relay, one relay at the customer edge, a chain of relays, and one relay announcing to two delivery edges">
+<title>Four shapes: no relay, one relay at the customer edge, a chain of relays, and one relay announcing to two delivery edges</title>
+<rect x="0.5" y="0.5" width="799" height="371" rx="8" fill="#000000" stroke="#2a3038"/>
+<rect x="10.0" y="10.0" width="384.0" height="164.0" rx="5.0" fill="#12161b" stroke="none"/>
+<text x="22.0" y="30.0" font-size="11.5" fill="#f2f5f8" text-anchor="start" font-weight="bold">No relay</text>
+<text x="22.0" y="45.0" font-size="10.0" fill="#aab4c0" text-anchor="start">The host's own machine holds the tunnel and announces to the edge.</text>
+<rect x="50.0" y="92.0" width="110.0" height="38.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="105.0" y="109.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host</text>
+<text x="105.0" y="121.5" font-size="9.5" fill="#aab4c0" text-anchor="middle">holds the tunnel</text>
+<rect x="260.0" y="92.0" width="94.0" height="38.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="307.0" y="115.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">delivery edge</text>
+<path d="M160.0,111.0 L253.0,111.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="260.0,111.0 252.0,114.4 252.0,107.6" fill="#ff9a45"/>
+<rect x="406.0" y="10.0" width="384.0" height="164.0" rx="5.0" fill="#12161b" stroke="none"/>
+<text x="418.0" y="30.0" font-size="11.5" fill="#f2f5f8" text-anchor="start" font-weight="bold">One relay at the customer edge</text>
+<text x="418.0" y="45.0" font-size="10.0" fill="#aab4c0" text-anchor="start">Every host is given the relay's address.</text>
+<rect x="420.0" y="62.0" width="70.0" height="28.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="455.0" y="80.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host</text>
+<path d="M490.0,76.0 L545.3,92.9" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="552.0,95.0 543.4,95.9 545.3,89.4" fill="#ff9a45"/>
+<rect x="420.0" y="98.0" width="70.0" height="28.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="455.0" y="116.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host</text>
+<path d="M490.0,112.0 L545.1,104.9" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="552.0,104.0 544.5,108.4 543.6,101.7" fill="#ff9a45"/>
+<rect x="420.0" y="134.0" width="70.0" height="28.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="455.0" y="152.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host</text>
+<path d="M490.0,148.0 L545.9,116.4" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="552.0,113.0 546.7,119.9 543.4,114.0" fill="#ff9a45"/>
+<rect x="552.0" y="90.0" width="98.0" height="40.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="601.0" y="108.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">relay</text>
+<text x="601.0" y="120.5" font-size="9.5" fill="#aab4c0" text-anchor="middle">customer edge</text>
+<rect x="686.0" y="91.0" width="94.0" height="38.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="733.0" y="114.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">delivery edge</text>
+<path d="M650.0,110.0 L679.0,110.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="686.0,110.0 678.0,113.4 678.0,106.6" fill="#ff9a45"/>
+<rect x="10.0" y="184.0" width="384.0" height="164.0" rx="5.0" fill="#12161b" stroke="none"/>
+<text x="22.0" y="204.0" font-size="11.5" fill="#f2f5f8" text-anchor="start" font-weight="bold">A chain of relays</text>
+<text x="22.0" y="219.0" font-size="10.0" fill="#aab4c0" text-anchor="start">Relays where the parts of a network meet. Each hop adds one to the hop count.</text>
+<rect x="18.0" y="238.0" width="62.0" height="38.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="49.0" y="255.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">hosts</text>
+<text x="49.0" y="267.5" font-size="9.5" fill="#aab4c0" text-anchor="middle">site A</text>
+<rect x="104.0" y="238.0" width="62.0" height="38.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="135.0" y="255.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">relay</text>
+<text x="135.0" y="267.5" font-size="9.5" fill="#aab4c0" text-anchor="middle">site A</text>
+<path d="M80.0,257.0 L97.0,257.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="104.0,257.0 96.0,260.4 96.0,253.6" fill="#ff9a45"/>
+<path d="M166.0,257.0 L186.3,271.9" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="192.0,276.0 183.6,274.0 187.5,268.6" fill="#ff9a45"/>
+<rect x="18.0" y="292.0" width="62.0" height="38.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="49.0" y="309.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">hosts</text>
+<text x="49.0" y="321.5" font-size="9.5" fill="#aab4c0" text-anchor="middle">site B</text>
+<rect x="104.0" y="292.0" width="62.0" height="38.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="135.0" y="309.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">relay</text>
+<text x="135.0" y="321.5" font-size="9.5" fill="#aab4c0" text-anchor="middle">site B</text>
+<path d="M80.0,311.0 L97.0,311.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="104.0,311.0 96.0,314.4 96.0,307.6" fill="#ff9a45"/>
+<path d="M166.0,311.0 L186.3,296.1" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="192.0,292.0 187.5,299.4 183.6,294.0" fill="#ff9a45"/>
+<rect x="192.0" y="264.0" width="94.0" height="40.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="239.0" y="282.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">relay</text>
+<text x="239.0" y="294.5" font-size="9.5" fill="#aab4c0" text-anchor="middle">customer edge</text>
+<rect x="308.0" y="265.0" width="80.0" height="38.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="348.0" y="288.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">delivery edge</text>
+<path d="M286.0,284.0 L301.0,284.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="308.0,284.0 300.0,287.4 300.0,280.6" fill="#ff9a45"/>
+<rect x="406.0" y="184.0" width="384.0" height="164.0" rx="5.0" fill="#12161b" stroke="none"/>
+<text x="418.0" y="204.0" font-size="11.5" fill="#f2f5f8" text-anchor="start" font-weight="bold">Two delivery edges</text>
+<text x="418.0" y="219.0" font-size="10.0" fill="#aab4c0" text-anchor="start">A topic goes to every upstream that serves its group.</text>
+<rect x="420.0" y="265.0" width="70.0" height="38.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="455.0" y="288.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">hosts</text>
+<rect x="528.0" y="264.0" width="98.0" height="40.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="577.0" y="282.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">relay</text>
+<text x="577.0" y="294.5" font-size="9.5" fill="#aab4c0" text-anchor="middle">-upstream A,B</text>
+<path d="M490.0,284.0 L521.0,284.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="528.0,284.0 520.0,287.4 520.0,280.6" fill="#ff9a45"/>
+<rect x="676.0" y="236.0" width="104.0" height="38.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="728.0" y="259.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">delivery edge A</text>
+<path d="M626.0,278.0 L669.6,257.9" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="676.0,255.0 670.1,261.4 667.3,255.3" fill="#ff9a45"/>
+<rect x="676.0" y="294.0" width="104.0" height="38.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="728.0" y="317.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">delivery edge B</text>
+<path d="M626.0,290.0 L669.6,310.1" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="676.0,313.0 667.3,312.7 670.1,306.6" fill="#ff9a45"/>
+<path d="M14.0,360.0 L41.0,360.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="48.0,360.0 40.0,363.4 40.0,356.6" fill="#ff9a45"/>
+<text x="56.0" y="363.8" font-size="10.5" fill="#aab4c0" text-anchor="start">interest: UDP 8729, one hop at a time</text>
+</svg>

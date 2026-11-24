@@ -40,21 +40,7 @@ larger than 1232 bytes. The wire is specified by the
 [`interest`](https://pkg.go.dev/github.com/lightwebinc/shard-common/interest)
 package of shard-common.
 
-```mermaid
-sequenceDiagram
-  participant H as host
-  participant R as relay
-  participant E as delivery edge
-  H->>R: ANNOUNCE a, b
-  R-->>H: ACK: a token, nothing applied
-  H->>R: ANNOUNCE a, b (with the token)
-  R-->>H: ACK: ok
-  R->>E: ANNOUNCE a, b (the union changed)
-  E-->>R: ACK: a is ok, b is refused (outside the bound)
-  R-->>H: RESYNC
-  H->>R: DIGEST
-  R-->>H: ACK: matched, b is held but refused upstream
-```
+![Each hop answers for itself; what the hop above says later reaches the host after a poke](figures/seq-status.svg)
 
 Each hop answers for itself, at once. What the hop above says later reaches
 the host at its next check-in, and the relay pokes the hosts that hold the
@@ -85,18 +71,7 @@ If a sender goes silent, what it announced lapses when the lifetime runs
 out. If it leaves in an orderly way, it can withdraw everything in one
 datagram.
 
-```mermaid
-sequenceDiagram
-  participant H as host
-  participant R as relay
-  Note over H,R: granted a lifetime of 300 s
-  loop every 100 s
-    H->>R: DIGEST of the whole set
-    R-->>H: ACK: matched, every topic refreshed
-  end
-  Note over H: the host dies
-  Note over R: 300 s after the last refresh: the topics lapse, and the union shrinks
-```
+![Soft state: a digest refreshes the whole set, and a silent host's topics lapse](figures/seq-refresh.svg)
 
 ## Loss and reordering
 
@@ -138,23 +113,7 @@ nothing to do.
 
 A relay restart, with the default lifetime and hold:
 
-```mermaid
-sequenceDiagram
-  participant H as hosts
-  participant R as relay
-  participant E as delivery edge
-  Note over R: restarts, and holds nothing
-  R->>E: DIGEST (a probe: compares nothing, removes nothing)
-  E-->>R: ACK: the groups delivered
-  Note over E: keeps what the previous run announced, and keeps delivering
-  H->>R: DIGEST (the next refresh, within 100 s)
-  R-->>H: ACK: a new token, so the relay holds nothing
-  H->>R: ANNOUNCE (the whole set, replayed)
-  R->>E: ANNOUNCE (the union, as it is learned)
-  Note over R: -restart-hold ends (105 s)
-  R->>E: DIGEST of the union
-  E-->>R: ACK: what was not announced again is removed
-```
+![A relay restart: the edge keeps delivering while the relay learns its set again](figures/seq-restart.svg)
 
 The relay's identity toward its upstream is derived from the host name and
 `-sender-label`, so it is the same after a restart. That is what lets the

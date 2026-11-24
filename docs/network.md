@@ -24,27 +24,16 @@ routers lie between them. Routers forward the datagrams as any other and
 hold nothing. The same four datagrams are used at every hop, so the shapes
 below are built from one part.
 
+![Four shapes: no relay, one relay at the customer edge, a chain of relays, and one relay announcing to two delivery edges](figures/shapes.svg)
+
 ### No relay
 
 A host whose own machine holds the tunnel announces to the edge directly.
-
-```mermaid
-flowchart LR
-  h["host<br/>holds the tunnel"] -. "interest" .-> e["delivery edge"]
-```
 
 ### One relay at the customer edge
 
 The usual shape: the machine that holds the tunnel runs the relay, and
 every host in the network is given its address.
-
-```mermaid
-flowchart LR
-  h1["host"] -. "interest" .-> r["relay<br/>at the customer edge"]
-  h2["host"] -.-> r
-  h3["host"] -.-> r
-  r -. "the union,<br/>through the tunnel" .-> e["delivery edge"]
-```
 
 ### A chain of relays
 
@@ -54,15 +43,6 @@ above. Each hop adds one to the hop count a message carries; a message that
 has crossed more than `-max-hops` relays (16 by default) is refused, which
 is what stops a ring.
 
-```mermaid
-flowchart LR
-  h1["hosts<br/>site A"] -.-> a["relay<br/>site A"]
-  h2["hosts<br/>site B"] -.-> b["relay<br/>site B"]
-  a -.-> c["relay<br/>at the customer edge"]
-  b -.-> c
-  c -.-> e["delivery edge"]
-```
-
 ### Two delivery edges
 
 A relay may be given several upstreams. A topic is announced to every
@@ -70,13 +50,6 @@ upstream that serves its group, so an edge that takes the consumer over
 already holds what the consumer wants. An edge that starts serving the
 consumer can also ask the relay to check in at once, without waiting for
 the next refresh.
-
-```mermaid
-flowchart LR
-  h["hosts"] -.-> r["relay<br/>-upstream A,B"]
-  r -. "interest" .-> a["delivery edge A"]
-  r -. "interest" .-> b["delivery edge B"]
-```
 
 ### A distributing relay
 
@@ -156,28 +129,7 @@ seconds for each sender, whether it holds one topic or ten thousand.
 Changes cost in proportion to what changed. A full replay, after a restart
 above or a mismatch, costs one ANNOUNCE for every 31 topics.
 
-```mermaid
-sequenceDiagram
-  participant H as host
-  participant R as relay
-  participant E as delivery edge
-  H->>R: ANNOUNCE a, b
-  R-->>H: ACK: a token, nothing applied
-  H->>R: ANNOUNCE a, b (with the token)
-  R-->>H: ACK: ok, the digest of {a, b}, lifetime 300 s
-  R->>E: ANNOUNCE a, b (the union changed)
-  E-->>R: ACK: ok
-  loop at a third of the lifetime: every 100 s
-    H->>R: DIGEST of {a, b}
-    R-->>H: ACK: matched, everything refreshed
-    R->>E: DIGEST of the union
-    E-->>R: ACK: matched
-  end
-  H->>R: ANNOUNCE a (lifetime 0: withdraw)
-  R-->>H: ACK: ok
-  R->>E: ANNOUNCE a (withdraw)
-  E-->>R: ACK: ok
-```
+![A topic's life on the wire: first contact, announce, refresh at a third of the lifetime, withdraw](figures/seq-lifecycle.svg)
 
 Each hop answers for itself, at once. What the hop above says later
 (refused, or not served) reaches the host at its next check-in, and the

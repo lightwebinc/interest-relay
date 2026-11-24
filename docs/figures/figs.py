@@ -8,6 +8,7 @@ One grammar across the set:
   solid blue line     objects: delivery records on a lane (TCP)
   solid teal line     publications: submission records (TCP)
   dashed gray line    what does not happen
+Every figure is drawn on black.
 Line style carries the meaning as well as color.
 
 Needs Pillow and Liberation Sans, to measure text: a label that would leave
@@ -25,11 +26,14 @@ _DIR = "/usr/share/fonts/truetype/liberation/"
 _REG, _BLD = _DIR + "LiberationSans-Regular.ttf", _DIR + "LiberationSans-Bold.ttf"
 _cache = {}
 
-INK, MUTED, HAIR, PANEL, WHITE = "#1b2430", "#56606e", "#c9d0da", "#f2f4f7", "#ffffff"
-INT = "#c2570f"   # interest
-OBJ = "#1f5fa8"   # objects
-PUB = "#14866d"   # publications
-NOT = "#8a93a0"   # what does not happen
+# Black ground, light type, bright lines.
+BG, EDGE = "#000000", "#2a3038"
+INK, MUTED, HAIR, PANEL, WHITE = "#f2f5f8", "#aab4c0", "#3a424d", "#12161b", "#000000"
+INT = "#ff9a45"   # interest
+OBJ = "#5cabff"   # objects
+PUB = "#3dd6a6"   # publications
+NOT = "#808a97"   # what does not happen
+ANS = "#c3ccd6"   # an answer, in a sequence
 DOTS, DASH = "1.5,3.5", "5,4"
 
 W = 800
@@ -110,6 +114,19 @@ class Fig:
         else:
             self.text(cx, y + h / 2.0 + 4.2, title, 12, True, anchor="middle")
 
+    def sbox(self, x, y, w, h, title, sub=None):
+        """A smaller box, for a figure of many parts."""
+        self.rect(x, y, w, h, WHITE, INK, 1.1)
+        cx = x + w / 2.0
+        for t, size, bold in ((title, 11, True), (sub, 9.5, False)):
+            if t and tw(t, size, bold) > w - 6:
+                WARN.append("%s: label too wide for box: %r" % (self.name, t))
+        if sub:
+            self.text(cx, y + h / 2.0 - 2, title, 11, True, anchor="middle")
+            self.text(cx, y + h / 2.0 + 10.5, sub, 9.5, False, MUTED, "middle")
+        else:
+            self.text(cx, y + h / 2.0 + 4, title, 11, True, anchor="middle")
+
     def cross(self, x, y, color=NOT, r=5.0):
         self.o.append('<path d="M%.1f,%.1f L%.1f,%.1f M%.1f,%.1f L%.1f,%.1f" stroke="%s" stroke-width="2.2" '
                       'stroke-linecap="round"/>' % (x - r, y - r, x + r, y + r, x - r, y + r, x + r, y - r, color))
@@ -127,8 +144,8 @@ class Fig:
             f.write('<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" '
                     'font-family="%s" role="img" aria-label="%s">\n' % (W, self.h, W, self.h, FONT, esc(self.title)))
             f.write("<title>%s</title>\n" % esc(self.title))
-            f.write('<rect x="0.5" y="0.5" width="%d" height="%d" rx="8" fill="#ffffff" stroke="#e2e6e8"/>\n'
-                    % (W - 1, self.h - 1))
+            f.write('<rect x="0.5" y="0.5" width="%d" height="%d" rx="8" fill="%s" stroke="%s"/>\n'
+                    % (W - 1, self.h - 1, BG, EDGE))
             f.write("\n".join(self.o) + "\n</svg>\n")
 
 
@@ -162,7 +179,7 @@ def fig_topology():
     f.flow([(222, 109), (262, 109)], INT, DOTS)
     f.flow([(388, 109), (463, 109), (463, 150)], INT, DOTS)
     f.flow([(126, 239), (463, 239), (463, 200)], INT, DOTS)
-    f.rect(548, 164, 62, 22, "#eceef1", NOT, 1.0, rx=11)
+    f.rect(548, 164, 62, 22, "#1d232b", NOT, 1.0, rx=11)
     f.flow([(526, 175), (618, 175)], INT, DOTS)
 
     f.label(191, 142, "forwards IP,", 80, size=9.5)
@@ -308,10 +325,173 @@ def fig_publish():
     f.save()
 
 
+def fig_shapes():
+    """The shapes a network of relays takes."""
+    f = Fig("shapes", 372, "Four shapes: no relay, one relay at the customer edge, a chain of relays, "
+                           "and one relay announcing to two delivery edges")
+
+    def panel(px, py, title, sub):
+        f.rect(px, py, 384, 164, PANEL, None)
+        f.text(px + 12, py + 20, title, 11.5, True)
+        f.label(px + 12, py + 35, sub, 360, anchor="start", size=10)
+        return px, py + 46
+
+    x, y = panel(10, 10, "No relay", "The host's own machine holds the tunnel and announces to the edge.")
+    f.sbox(x + 40, y + 36, 110, 38, "host", "holds the tunnel")
+    f.sbox(x + 250, y + 36, 94, 38, "delivery edge")
+    f.flow([(x + 150, y + 55), (x + 250, y + 55)], INT, DOTS)
+
+    x, y = panel(406, 10, "One relay at the customer edge", "Every host is given the relay's address.")
+    for i in range(3):
+        f.sbox(x + 14, y + 6 + i * 36, 70, 28, "host")
+        f.flow([(x + 84, y + 20 + i * 36), (x + 146, y + 48 + (i - 1) * 9)], INT, DOTS)
+    f.sbox(x + 146, y + 34, 98, 40, "relay", "customer edge")
+    f.sbox(x + 280, y + 35, 94, 38, "delivery edge")
+    f.flow([(x + 244, y + 54), (x + 280, y + 54)], INT, DOTS)
+
+    x, y = panel(10, 184, "A chain of relays", "Relays where the parts of a network meet. Each hop adds one "
+                                               "to the hop count.")
+    for i, site in enumerate(("site A", "site B")):
+        yy = y + 8 + i * 54
+        f.sbox(x + 8, yy, 62, 38, "hosts", site)
+        f.sbox(x + 94, yy, 62, 38, "relay", site)
+        f.flow([(x + 70, yy + 19), (x + 94, yy + 19)], INT, DOTS)
+        f.flow([(x + 156, yy + 19), (x + 182, y + 46 + i * 16)], INT, DOTS)
+    f.sbox(x + 182, y + 34, 94, 40, "relay", "customer edge")
+    f.sbox(x + 298, y + 35, 80, 38, "delivery edge")
+    f.flow([(x + 276, y + 54), (x + 298, y + 54)], INT, DOTS)
+
+    x, y = panel(406, 184, "Two delivery edges", "A topic goes to every upstream that serves its group.")
+    f.sbox(x + 14, y + 35, 70, 38, "hosts")
+    f.sbox(x + 122, y + 34, 98, 40, "relay", "-upstream A,B")
+    f.flow([(x + 84, y + 54), (x + 122, y + 54)], INT, DOTS)
+    for i, n in enumerate(("A", "B")):
+        f.sbox(x + 270, y + 6 + i * 58, 104, 38, "delivery edge " + n)
+        f.flow([(x + 220, y + 48 + i * 12), (x + 270, y + 25 + i * 58)], INT, DOTS)
+
+    f.legend(360, [LEG_INT])
+    f.save()
+
+
+def seq(name, title, parts, steps):
+    """A sequence figure. Steps: ("msg", from, to, text) for what a sender
+    says, ("ans", from, to, text) for an answer, ("note", a, b, text) over
+    the lifelines a to b, ("loop", text, n) around the next n steps."""
+    xs = {2: [200, 600], 3: [130, 400, 670]}[len(parts)]
+    y, top = 78.0, 14
+    body, frames, open_loops = [], [], []
+    f = Fig(name, 0, title)
+    for st in steps:
+        for lp in open_loops:
+            lp[2] -= 1
+        if st[0] == "loop":
+            open_loops.append([y - 16, st[1], st[2]])
+            y += 20
+            continue
+        if st[0] == "note":
+            a, b, text = xs[st[1]], xs[st[2]], st[3]
+            w = max(b - a + 60, tw(text, 10.5) + 24)
+            cx = (a + b) / 2.0
+            cx = min(max(cx, w / 2 + 8), W - w / 2 - 8)
+            body.append(("note", cx, y, w, text))
+            y += 36
+        else:
+            body.append((st[0], xs[st[1]], xs[st[2]], y, st[3]))
+            y += 34
+        for lp in [l for l in open_loops if l[2] <= 0]:
+            frames.append((lp[0], y - 14, lp[1]))
+            open_loops.remove(lp)
+            y += 12
+    bottom = y - 6
+    f.h = int(bottom + 44)
+    for x in xs:
+        f.flow([(x, top + 32), (x, bottom)], HAIR, None, 1.2, arrow=False)
+    for y0, y1, text in frames:
+        f.rect(xs[0] - 104, y0, xs[-1] - xs[0] + 208, y1 - y0, "none", NOT, 1.0, rx=4, dash="4,3")
+        f.text(xs[0] - 96, y0 + 14, text, 10, True, MUTED)
+    for x, p in zip(xs, parts):
+        f.sbox(x - 64, top, 128, 32, p)
+    for b in body:
+        if b[0] == "note":
+            _, cx, yy, w, text = b
+            f.rect(cx - w / 2, yy - 16, w, 24, "#1d232b", HAIR, 1.0, rx=4)
+            f.text(cx, yy, text, 10.5, False, INK, "middle")
+        else:
+            kind, x1, x2, yy, text = b
+            f.label((x1 + x2) / 2.0, yy - 6, text, abs(x2 - x1) - 12, INK if kind == "msg" else ANS)
+            if kind == "msg":
+                f.flow([(x1, yy), (x2, yy)], INT, None, 1.6)
+            else:
+                f.flow([(x1, yy), (x2, yy)], ANS, DASH, 1.3)
+    f.legend(f.h - 16, [(INT, None, "from the sender: ANNOUNCE, DIGEST"), (ANS, DASH, "from the receiver: ACK, RESYNC")])
+    f.save()
+
+
+H, R, E = 0, 1, 2
+THREE = ("host", "relay", "delivery edge")
+
+
+def fig_sequences():
+    seq("seq-lifecycle", "A topic's life on the wire: first contact, announce, refresh, withdraw", THREE, [
+        ("msg", H, R, "ANNOUNCE a, b"),
+        ("ans", R, H, "ACK: a token, nothing applied"),
+        ("msg", H, R, "ANNOUNCE a, b (with the token)"),
+        ("ans", R, H, "ACK: ok, digest of {a, b}, lifetime 300 s"),
+        ("msg", R, E, "ANNOUNCE a, b (the union changed)"),
+        ("ans", E, R, "ACK: ok"),
+        ("loop", "every 100 s", 4),
+        ("msg", H, R, "DIGEST of {a, b}"),
+        ("ans", R, H, "ACK: matched, everything refreshed"),
+        ("msg", R, E, "DIGEST of the union"),
+        ("ans", E, R, "ACK: matched"),
+        ("msg", H, R, "ANNOUNCE a (lifetime 0: withdraw)"),
+        ("ans", R, H, "ACK: ok"),
+        ("msg", R, E, "ANNOUNCE a (withdraw)"),
+        ("ans", E, R, "ACK: ok"),
+    ])
+    seq("seq-status", "Each hop answers for itself; what the hop above says later reaches the host after a "
+                      "poke", THREE, [
+        ("msg", H, R, "ANNOUNCE a, b"),
+        ("ans", R, H, "ACK: a token, nothing applied"),
+        ("msg", H, R, "ANNOUNCE a, b (with the token)"),
+        ("ans", R, H, "ACK: ok"),
+        ("msg", R, E, "ANNOUNCE a, b (the union changed)"),
+        ("ans", E, R, "ACK: a ok, b refused (outside the bound)"),
+        ("ans", R, H, "RESYNC"),
+        ("msg", H, R, "DIGEST"),
+        ("ans", R, H, "ACK: matched, b held but refused upstream"),
+    ])
+    seq("seq-refresh", "Soft state: a digest refreshes the whole set, and a silent host's topics lapse",
+        ("host", "relay"), [
+        ("note", 0, 1, "granted a lifetime of 300 s"),
+        ("loop", "every 100 s", 2),
+        ("msg", 0, 1, "DIGEST of the whole set"),
+        ("ans", 1, 0, "ACK: matched, every topic refreshed"),
+        ("note", 0, 0, "the host dies"),
+        ("note", 1, 1, "300 s after the last refresh: the topics lapse, and the union shrinks"),
+    ])
+    seq("seq-restart", "A relay restart: the edge keeps delivering while the relay learns its set again",
+        ("hosts", "relay", "delivery edge"), [
+        ("note", R, R, "restarts, and holds nothing"),
+        ("msg", R, E, "DIGEST (a probe: compares and removes nothing)"),
+        ("ans", E, R, "ACK: the groups delivered"),
+        ("note", E, E, "keeps what the previous run announced"),
+        ("msg", H, R, "DIGEST (the next refresh, within 100 s)"),
+        ("ans", R, H, "ACK: a new token: the relay holds nothing"),
+        ("msg", H, R, "ANNOUNCE (the whole set, replayed)"),
+        ("msg", R, E, "ANNOUNCE (the union, as it is learned)"),
+        ("note", R, R, "-restart-hold ends (105 s)"),
+        ("msg", R, E, "DIGEST of the union"),
+        ("ans", E, R, "ACK: what was not announced again is removed"),
+    ])
+
+
 if __name__ == "__main__":
     fig_topology()
     fig_modes()
     fig_publish()
+    fig_shapes()
+    fig_sequences()
     for w in WARN:
         print("WARN", w, file=sys.stderr)
     sys.exit(1 if WARN else 0)
