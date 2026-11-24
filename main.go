@@ -11,6 +11,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net"
 	"os"
@@ -97,6 +98,7 @@ func run() error {
 		if pubLn, err = net.Listen("tcp", cfg.PublishListen); err != nil {
 			return err
 		}
+		defer func() { _ = pubLn.Close() }() // ServeListener closes it too; this covers a start that fails first
 	}
 
 	down, err := net.ListenUDP("udp", net.UDPAddrFromAddrPort(cfg.Listen))
@@ -137,12 +139,13 @@ func run() error {
 			}
 		}()
 	}
+	var pubErr error
 	if pub != nil {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := pub.ServeListener(ctx, pubLn); err != nil {
-				slog.Error("publish point", "err", err)
+			if err := pub.ServeListener(ctx, pubLn); err != nil && ctx.Err() == nil {
+				pubErr = fmt.Errorf("publish point: %w", err)
 				cancel() // a relay that cannot publish for its hosts stops, rather than drop their submissions quietly
 			}
 		}()
@@ -150,6 +153,9 @@ func run() error {
 	err = r.Serve(ctx, down, up)
 	cancel()
 	wg.Wait()
+	if err == nil {
+		err = pubErr // a non-zero exit, so a supervisor restarts it
+	}
 	slog.Info("shutdown complete")
 	return err
 }

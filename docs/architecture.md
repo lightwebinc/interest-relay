@@ -221,8 +221,15 @@ What follows:
 
 It keeps no state beyond what it has: which host asked for which topic,
 refreshed by the hosts. No object is remembered. The publisher is skipped by
-its source address, so a host should publish from the address it names its
-lane at.
+its source address, compared with the address each host names its lane at,
+so:
+
+- a host publishes from the address it names its lane at (a bridge's
+  `-publish-source` and `-interest-deliver-to` name the same address); one
+  that publishes from another is sent its own objects back, a duplicate its
+  engine drops;
+- hosts that share one address are one host to the relay: a publication
+  from one is copied to none of the others.
 
 It scales by consumers, not by relays talking to each other. One relay
 serves one consumer; a domain larger than one relay serves becomes several

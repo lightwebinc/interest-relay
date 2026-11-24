@@ -161,12 +161,14 @@ func TestPublish(t *testing.T) {
 		t.Fatalf("defaults %+v", cfg)
 	}
 	for name, args := range map[string][]string{
-		"no ingress":     append(base, "-publish-listen", "[::]:8725", "-publish-source", "2001:db8:1::5"),
-		"no source":      append(base, "-publish-listen", "[::]:8725", "-publish-ingress", "[2001:db8::a]:8725"),
-		"no distributor": {"-upstream", "[2001:db8::a]:8729", "-allow", "2001:db8:1::/64", "-publish-listen", "[::]:8725", "-publish-ingress", "[2001:db8::a]:8725", "-publish-source", "2001:db8:1::5"},
-		"no listen":      append(base, "-publish-source", "2001:db8:1::5"),
-		"bad ingress":    append(base, "-publish-listen", "[::]:8725", "-publish-ingress", "2001:db8::a", "-publish-source", "2001:db8:1::5"),
-		"deliver 0":      append(base, "-deliver-topics", "0"),
+		"no ingress":      append(base, "-publish-listen", "[::]:8725", "-publish-source", "2001:db8:1::5"),
+		"no source":       append(base, "-publish-listen", "[::]:8725", "-publish-ingress", "[2001:db8::a]:8725"),
+		"no distributor":  {"-upstream", "[2001:db8::a]:8729", "-allow", "2001:db8:1::/64", "-publish-listen", "[::]:8725", "-publish-ingress", "[2001:db8::a]:8725", "-publish-source", "2001:db8:1::5"},
+		"no listen":       append(base, "-publish-source", "2001:db8:1::5"),
+		"bad ingress":     append(base, "-publish-listen", "[::]:8725", "-publish-ingress", "2001:db8::a", "-publish-source", "2001:db8:1::5"),
+		"deliver 0":       append(base, "-deliver-topics", "0"),
+		"loopback source": append(base, "-publish-listen", "[::]:8725", "-publish-ingress", "[2001:db8::a]:8725", "-publish-source", "::1"),
+		"over the lane":   append(base, "-publish-listen", "[::]:8725", "-publish-ingress", "[2001:db8::a]:8725", "-publish-source", "2001:db8:1::5", "-publish-max-object-mib", "65", "-distribute-max-object-mib", "64"),
 	} {
 		if _, err := load(t, nil, args...); err == nil {
 			t.Errorf("%s: accepted", name)

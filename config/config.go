@@ -234,7 +234,8 @@ func parse(fs *flag.FlagSet, args []string, getenv func(string) string) (*Config
 		if len(cfg.PublishIngress) == 0 {
 			return nil, errors.New("-publish-listen needs -publish-ingress, the edge's ingress addresses")
 		}
-		if cfg.PublishSource, err = netip.ParseAddr(*pubSource); err != nil || cfg.PublishSource.IsUnspecified() {
+		if cfg.PublishSource, err = netip.ParseAddr(*pubSource); err != nil || cfg.PublishSource.IsUnspecified() ||
+			cfg.PublishSource.IsLoopback() || cfg.PublishSource.IsMulticast() {
 			return nil, fmt.Errorf("-publish-source %q: the consumer's own address, which the edge excludes from its lane", *pubSource)
 		}
 		if *pubMaxMiB < 1 || *pubQueue < 1 || *pubQueueMiB < 1 || *pubSrcObjs < 0 || *pubSrcMiB < 0 || *pubObjs < 0 || *pubMiB < 0 {
@@ -242,6 +243,9 @@ func parse(fs *flag.FlagSet, args []string, getenv func(string) string) (*Config
 		}
 		if cfg.DistributeListen == "" {
 			return nil, errors.New("-publish-listen needs -distribute-listen: the publish point copies to the hosts the distributor serves")
+		}
+		if *pubMaxMiB > *distMaxMiB {
+			return nil, fmt.Errorf("-publish-max-object-mib %d is over -distribute-max-object-mib %d: a sibling's lane would refuse what the relay copies", *pubMaxMiB, *distMaxMiB)
 		}
 		cfg.PublishMaxObject = *pubMaxMiB << 20
 		cfg.PublishSourceObjects, cfg.PublishSourceBytes = *pubSrcObjs, *pubSrcMiB*(1<<20)

@@ -63,8 +63,10 @@ const (
 	DefaultQueueBytes    = 256 << 20
 	DefaultMaxConns      = 1024
 	recordTimeout        = 2 * time.Minute
+	idleTimeout          = 5 * time.Minute // a host's bridge redials on its next record
 	maxTrackedSources    = 4096
 	readBuffer           = 64 << 10
+	readChunk            = 1 << 20
 )
 
 // Config configures a [Server].
@@ -234,7 +236,7 @@ func (s *Server) ServeListener(ctx context.Context, ln net.Listener) error {
 	}
 	stop := context.AfterFunc(ctx, func() { _ = ln.Close() })
 	defer stop()
-	defer wg.Wait()
+	defer func() { cancel(); wg.Wait() }()
 	var delay time.Duration
 	for {
 		c, err := ln.Accept()
@@ -292,6 +294,7 @@ func (s *Server) serveConn(ctx context.Context, c net.Conn) {
 	br := bufio.NewReaderSize(c, readBuffer)
 	// The stream's grammar is decided by its first bytes, as at the edge's
 	// ingress; only submission records are taken here.
+	_ = c.SetReadDeadline(time.Now().Add(recordTimeout))
 	if lead, err := br.Peek(2); err != nil {
 		return
 	} else if binary.BigEndian.Uint16(lead) != objfmt.BEEFRecordTag {
@@ -300,7 +303,7 @@ func (s *Server) serveConn(ctx context.Context, c net.Conn) {
 		return
 	}
 	for {
-		_ = c.SetReadDeadline(time.Time{}) // a bridge's stream idles between records
+		_ = c.SetReadDeadline(time.Now().Add(idleTimeout)) // a bridge's stream idles between records
 		if _, err := br.Peek(1); err != nil {
 			return
 		}
@@ -367,10 +370,16 @@ func (s *Server) readRecord(br *bufio.Reader) (rec []byte, why int, err error) {
 		}
 		return nil, ReasonOversize, nil
 	}
-	rec = make([]byte, len(env)+int(objLen))
-	copy(rec, env)
-	if _, err := io.ReadFull(br, rec[len(env):]); err != nil {
-		return nil, -1, err
+	// Grown as the bytes arrive, so a header that names a large object and
+	// a sender that then stalls hold no more memory than they sent.
+	rec = append(make([]byte, 0, len(env)+min(int(objLen), readChunk)), env...)
+	for left := int(objLen); left > 0; {
+		n := min(left, readChunk)
+		rec = append(rec, make([]byte, n)...)
+		if _, err := io.ReadFull(br, rec[len(rec)-n:]); err != nil {
+			return nil, -1, err
+		}
+		left -= n
 	}
 	if !objfmt.IsBEEFObject(rec[len(env):]) {
 		return nil, ReasonNotBEEF, nil
@@ -428,8 +437,8 @@ func (s *Server) spend(src netip.Addr, n int) bool {
 	defer s.mu.Unlock()
 	b := s.sources[src]
 	if b == nil {
-		if len(s.sources) >= maxTrackedSources {
-			s.sources = map[netip.Addr]*budget{} // a few hosts sit behind a relay; a flood of sources starts over
+		if len(s.sources) >= maxTrackedSources && !s.evictIdleLocked(now) {
+			return false // every tracked source is spending: a flood of new ones waits
 		}
 		b = &budget{objects: bucket{rate: s.cfg.SourceObjects}, bytes: bucket{rate: s.cfg.SourceBytes}}
 		s.sources[src] = b
@@ -442,10 +451,28 @@ func (s *Server) spend(src netip.Addr, n int) bool {
 	return true
 }
 
+// evictIdleLocked forgets the sources idle for a second, whose budgets are
+// full again and so the same as a new source's, and reports whether any
+// went.
+func (s *Server) evictIdleLocked(now time.Time) bool {
+	gone := false
+	for a, b := range s.sources {
+		if now.Sub(b.last) >= time.Second {
+			delete(s.sources, a)
+			gone = true
+		}
+	}
+	return gone
+}
+
 // budget is a per-second allowance of objects and bytes.
-type budget struct{ objects, bytes bucket }
+type budget struct {
+	objects, bytes bucket
+	last           time.Time // the last record charged
+}
 
 func (b *budget) can(n int, now time.Time) bool {
+	b.last = now
 	b.objects.fill(now)
 	b.bytes.fill(now)
 	return b.objects.has(1) && b.bytes.has(float64(n))

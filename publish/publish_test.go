@@ -400,3 +400,56 @@ func TestNewRequires(t *testing.T) {
 		}
 	}
 }
+
+// A listener closed under a live context ends ServeListener: the run and
+// the connections are cancelled, not waited on forever.
+func TestServeListenerEndsWhenTheListenerCloses(t *testing.T) {
+	s := newServer(Config{Allow: []netip.Prefix{netip.MustParsePrefix("127.0.0.0/8")}}, &upstream{}, nil)
+	s.run = func(ctx context.Context) error { <-ctx.Done(); return nil }
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error, 1)
+	go func() { done <- s.ServeListener(t.Context(), ln) }()
+	c, err := net.Dial("tcp", ln.Addr().String()) // a host connected, idle
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = c.Close() }()
+	time.Sleep(50 * time.Millisecond)
+	_ = ln.Close()
+	select {
+	case err := <-done:
+		if !errors.Is(err, net.ErrClosed) {
+			t.Fatalf("ServeListener returned %v, want the listener's close", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("ServeListener did not return")
+	}
+}
+
+// When every tracked source is spending, a new one is refused rather than
+// every budget being started over; an idle one makes room.
+func TestSourcesAreNotStartedOver(t *testing.T) {
+	s := newServer(Config{SourceObjects: 1}, &upstream{}, nil)
+	now := time.Now()
+	for i := range maxTrackedSources {
+		a := netip.AddrFrom4([4]byte{10, byte(i >> 16), byte(i >> 8), byte(i)})
+		s.sources[a] = &budget{objects: bucket{rate: 1}, last: now}
+	}
+	busy := netip.AddrFrom4([4]byte{10, 0, 0, 1})
+	s.sources[busy].objects = bucket{rate: 1, tokens: 0, last: now}
+	if s.spend(netip.MustParseAddr("10.9.9.9"), 10) {
+		t.Fatal("a new source was taken while every tracked source was spending")
+	}
+	if s.spend(busy, 10) {
+		t.Fatal("a spent source was given a fresh budget")
+	}
+	for _, b := range s.sources {
+		b.last = now.Add(-2 * time.Second)
+	}
+	if !s.spend(netip.MustParseAddr("10.9.9.9"), 10) {
+		t.Fatal("idle sources did not make room")
+	}
+}
