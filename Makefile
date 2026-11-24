@@ -16,9 +16,10 @@ tools:                 ## build the test tools (announcer, terminus, lane feed a
 test:                  ## unit and loopback tests, with the race detector
 	go test -race -count=1 $(PKG)
 
-test-netns:            ## multi-hop and distribution tests in network namespaces (needs user namespaces or root)
+test-netns:            ## multi-hop, distribution and publishing tests in network namespaces (needs user namespaces or root)
 	test/netns/chain.sh
 	test/netns/distribute.sh
+	test/netns/publish.sh
 
 lint:                  ## golangci-lint
 	golangci-lint run $(PKG)

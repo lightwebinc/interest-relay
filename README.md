@@ -48,9 +48,10 @@ build/interest-announce -upstream '[2001:db8:a::1]:8729' tm_example tm_other
 | `publish/` | the publish point: takes the hosts' submissions, sends them up the tunnel, copies them to siblings |
 | `cmd/interest-announce` | an announcer for the command line |
 | `cmd/interest-terminus` | a stand-in for a delivery edge, for testing |
-| `cmd/lane-feed`, `cmd/lane-sink` | a lane writer and a host's lane, for testing distribution |
+| `cmd/lane-feed`, `cmd/lane-sink` | a lane writer and a host's lane, for testing distribution; with `-submit` and `-submissions`, a publisher and an ingress, for testing publishing |
 | `test/netns/chain.sh` | a multi-hop test on one machine, in network namespaces |
 | `test/netns/distribute.sh` | distribution end to end, in network namespaces |
+| `test/netns/publish.sh` | publishing end to end, in network namespaces |
 
 The protocol itself (the wire, the announcer and the receiver) lives in
 [`shard-common/interest`](https://github.com/lightwebinc/shard-common).
