@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="624" viewBox="0 0 800 624" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="A topic's life on the wire: first contact, announce, refresh, withdraw">
+<title>A topic's life on the wire: first contact, announce, refresh, withdraw</title>
+<rect x="0.5" y="0.5" width="799" height="623" rx="8" fill="#000000" stroke="#2a3038"/>
+<path d="M130.0,46.0 L130.0,580.0" fill="none" stroke="#3a424d" stroke-width="1.20" stroke-linejoin="round" stroke-linecap="butt"/>
+<path d="M400.0,46.0 L400.0,580.0" fill="none" stroke="#3a424d" stroke-width="1.20" stroke-linejoin="round" stroke-linecap="butt"/>
+<path d="M670.0,46.0 L670.0,580.0" fill="none" stroke="#3a424d" stroke-width="1.20" stroke-linejoin="round" stroke-linecap="butt"/>
+<rect x="26.0" y="266.0" width="748.0" height="158.0" rx="4.0" fill="none" stroke="#808a97" stroke-width="1.00" stroke-dasharray="4,3"/>
+<text x="34.0" y="280.0" font-size="10.0" fill="#aab4c0" text-anchor="start" font-weight="bold">every 100 s</text>
+<rect x="66.0" y="14.0" width="128.0" height="32.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="130.0" y="34.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host</text>
+<rect x="336.0" y="14.0" width="128.0" height="32.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="400.0" y="34.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">relay</text>
+<rect x="606.0" y="14.0" width="128.0" height="32.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.10"/>
+<text x="670.0" y="34.0" font-size="11.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">delivery edge</text>
+<text x="265.0" y="72.0" font-size="10.5" fill="#f2f5f8" text-anchor="middle">ANNOUNCE a, b</text>
+<path d="M130.0,78.0 L393.0,78.0" fill="none" stroke="#ff9a45" stroke-width="1.60" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="400.0,78.0 392.0,81.4 392.0,74.6" fill="#ff9a45"/>
+<text x="265.0" y="106.0" font-size="10.5" fill="#c3ccd6" text-anchor="middle">ACK: a token, nothing applied</text>
+<path d="M400.0,112.0 L137.0,112.0" fill="none" stroke="#c3ccd6" stroke-width="1.30" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
+<polygon points="130.0,112.0 138.0,108.6 138.0,115.4" fill="#c3ccd6"/>
+<text x="265.0" y="140.0" font-size="10.5" fill="#f2f5f8" text-anchor="middle">ANNOUNCE a, b (with the token)</text>
+<path d="M130.0,146.0 L393.0,146.0" fill="none" stroke="#ff9a45" stroke-width="1.60" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="400.0,146.0 392.0,149.4 392.0,142.6" fill="#ff9a45"/>
+<text x="265.0" y="174.0" font-size="10.5" fill="#c3ccd6" text-anchor="middle">ACK: ok, digest of {a, b}, lifetime 300 s</text>
+<path d="M400.0,180.0 L137.0,180.0" fill="none" stroke="#c3ccd6" stroke-width="1.30" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
+<polygon points="130.0,180.0 138.0,176.6 138.0,183.4" fill="#c3ccd6"/>
+<text x="535.0" y="208.0" font-size="10.5" fill="#f2f5f8" text-anchor="middle">ANNOUNCE a, b (the union changed)</text>
+<path d="M400.0,214.0 L663.0,214.0" fill="none" stroke="#ff9a45" stroke-width="1.60" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="670.0,214.0 662.0,217.4 662.0,210.6" fill="#ff9a45"/>
+<text x="535.0" y="242.0" font-size="10.5" fill="#c3ccd6" text-anchor="middle">ACK: ok</text>
+<path d="M670.0,248.0 L407.0,248.0" fill="none" stroke="#c3ccd6" stroke-width="1.30" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
+<polygon points="400.0,248.0 408.0,244.6 408.0,251.4" fill="#c3ccd6"/>
+<text x="265.0" y="296.0" font-size="10.5" fill="#f2f5f8" text-anchor="middle">DIGEST of {a, b}</text>
+<path d="M130.0,302.0 L393.0,302.0" fill="none" stroke="#ff9a45" stroke-width="1.60" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="400.0,302.0 392.0,305.4 392.0,298.6" fill="#ff9a45"/>
+<text x="265.0" y="330.0" font-size="10.5" fill="#c3ccd6" text-anchor="middle">ACK: matched, everything refreshed</text>
+<path d="M400.0,336.0 L137.0,336.0" fill="none" stroke="#c3ccd6" stroke-width="1.30" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
+<polygon points="130.0,336.0 138.0,332.6 138.0,339.4" fill="#c3ccd6"/>
+<text x="535.0" y="364.0" font-size="10.5" fill="#f2f5f8" text-anchor="middle">DIGEST of the union</text>
+<path d="M400.0,370.0 L663.0,370.0" fill="none" stroke="#ff9a45" stroke-width="1.60" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="670.0,370.0 662.0,373.4 662.0,366.6" fill="#ff9a45"/>
+<text x="535.0" y="398.0" font-size="10.5" fill="#c3ccd6" text-anchor="middle">ACK: matched</text>
+<path d="M670.0,404.0 L407.0,404.0" fill="none" stroke="#c3ccd6" stroke-width="1.30" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
+<polygon points="400.0,404.0 408.0,400.6 408.0,407.4" fill="#c3ccd6"/>
+<text x="265.0" y="444.0" font-size="10.5" fill="#f2f5f8" text-anchor="middle">ANNOUNCE a (lifetime 0: withdraw)</text>
+<path d="M130.0,450.0 L393.0,450.0" fill="none" stroke="#ff9a45" stroke-width="1.60" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="400.0,450.0 392.0,453.4 392.0,446.6" fill="#ff9a45"/>
+<text x="265.0" y="478.0" font-size="10.5" fill="#c3ccd6" text-anchor="middle">ACK: ok</text>
+<path d="M400.0,484.0 L137.0,484.0" fill="none" stroke="#c3ccd6" stroke-width="1.30" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
+<polygon points="130.0,484.0 138.0,480.6 138.0,487.4" fill="#c3ccd6"/>
+<text x="535.0" y="512.0" font-size="10.5" fill="#f2f5f8" text-anchor="middle">ANNOUNCE a (withdraw)</text>
+<path d="M400.0,518.0 L663.0,518.0" fill="none" stroke="#ff9a45" stroke-width="1.60" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="670.0,518.0 662.0,521.4 662.0,514.6" fill="#ff9a45"/>
+<text x="535.0" y="546.0" font-size="10.5" fill="#c3ccd6" text-anchor="middle">ACK: ok</text>
+<path d="M670.0,552.0 L407.0,552.0" fill="none" stroke="#c3ccd6" stroke-width="1.30" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
+<polygon points="400.0,552.0 408.0,548.6 408.0,555.4" fill="#c3ccd6"/>
+<path d="M14.0,608.0 L41.0,608.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="48.0,608.0 40.0,611.4 40.0,604.6" fill="#ff9a45"/>
+<text x="56.0" y="611.8" font-size="10.5" fill="#aab4c0" text-anchor="start">from the sender: ANNOUNCE, DIGEST</text>
+<path d="M265.8,608.0 L292.8,608.0" fill="none" stroke="#c3ccd6" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
+<polygon points="299.8,608.0 291.8,611.4 291.8,604.6" fill="#c3ccd6"/>
+<text x="307.8" y="611.8" font-size="10.5" fill="#aab4c0" text-anchor="start">from the receiver: ACK, RESYNC</text>
+</svg>

@@ -1,81 +1,81 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="344" viewBox="0 0 800 344" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Why hosts behind one relay publish to it: three ways for host h1 to publish, and what reaches h1 and its sibling h2">
 <title>Why hosts behind one relay publish to it: three ways for host h1 to publish, and what reaches h1 and its sibling h2</title>
-<rect x="0.5" y="0.5" width="799" height="343" rx="8" fill="#ffffff" stroke="#e2e6e8"/>
-<text x="400.0" y="22.0" font-size="9.5" fill="#56606e" text-anchor="middle" font-weight="bold" letter-spacing="0.60">THREE WAYS FOR H1 TO PUBLISH AN OBJECT THAT H1 AND H2 BOTH ASKED FOR</text>
-<rect x="12.0" y="34.0" width="252.0" height="276.0" rx="5.0" fill="#f2f4f7" stroke="none"/>
-<text x="26.0" y="54.0" font-size="11.5" fill="#1b2430" text-anchor="start" font-weight="bold">1  From its own address</text>
-<text x="26.0" y="69.0" font-size="10.0" fill="#56606e" text-anchor="start">h1 publishes straight to the edge.</text>
-<rect x="78.0" y="84.0" width="120.0" height="34.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="138.0" y="105.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">delivery edge</text>
-<rect x="78.0" y="158.0" width="120.0" height="34.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="138.0" y="179.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">relay</text>
-<rect x="26.0" y="236.0" width="96.0" height="34.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="74.0" y="257.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">host h1</text>
-<rect x="154.0" y="236.0" width="96.0" height="34.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="202.0" y="257.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">host h2</text>
-<path d="M46.0,236.0 L46.0,101.0 L71.0,101.0" fill="none" stroke="#14866d" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
-<polygon points="78.0,101.0 70.0,104.4 70.0,97.6" fill="#14866d"/>
-<path d="M138.0,118.0 L138.0,151.0" fill="none" stroke="#1f5fa8" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
-<polygon points="138.0,158.0 134.6,150.0 141.4,150.0" fill="#1f5fa8"/>
-<path d="M112.0,192.0 L93.1,229.7" fill="none" stroke="#1f5fa8" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
-<polygon points="90.0,236.0 90.6,227.3 96.6,230.3" fill="#1f5fa8"/>
-<path d="M164.0,192.0 L191.9,230.3" fill="none" stroke="#1f5fa8" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
-<polygon points="196.0,236.0 188.6,231.5 194.0,227.6" fill="#1f5fa8"/>
-<text x="147.0" y="142.0" font-size="9.5" fill="#56606e" text-anchor="start">down the lane</text>
-<text x="138.0" y="287.0" font-size="10.0" fill="#1b2430" text-anchor="middle">h1 is sent its own object back,</text>
-<text x="138.0" y="301.0" font-size="10.0" fill="#1b2430" text-anchor="middle">and the consumer pays for that copy.</text>
-<rect x="274.0" y="34.0" width="252.0" height="276.0" rx="5.0" fill="#f2f4f7" stroke="none"/>
-<text x="288.0" y="54.0" font-size="11.5" fill="#1b2430" text-anchor="start" font-weight="bold">2  From the consumer's address</text>
-<text x="288.0" y="69.0" font-size="10.0" fill="#56606e" text-anchor="start">h1 publishes straight to the edge.</text>
-<rect x="340.0" y="84.0" width="120.0" height="34.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="400.0" y="105.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">delivery edge</text>
-<rect x="340.0" y="158.0" width="120.0" height="34.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="400.0" y="179.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">relay</text>
-<rect x="288.0" y="236.0" width="96.0" height="34.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="336.0" y="257.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">host h1</text>
-<rect x="416.0" y="236.0" width="96.0" height="34.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="464.0" y="257.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">host h2</text>
-<path d="M308.0,236.0 L308.0,101.0 L333.0,101.0" fill="none" stroke="#14866d" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
-<polygon points="340.0,101.0 332.0,104.4 332.0,97.6" fill="#14866d"/>
-<path d="M400.0,118.0 L400.0,151.0" fill="none" stroke="#8a93a0" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
-<polygon points="400.0,158.0 396.6,150.0 403.4,150.0" fill="#8a93a0"/>
-<path d="M395.0,131.0 L405.0,141.0 M395.0,141.0 L405.0,131.0" stroke="#8a93a0" stroke-width="2.2" stroke-linecap="round"/>
-<path d="M426.0,192.0 L453.9,230.3" fill="none" stroke="#8a93a0" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
-<polygon points="458.0,236.0 450.6,231.5 456.0,227.6" fill="#8a93a0"/>
-<text x="412.0" y="140.0" font-size="9.5" fill="#56606e" text-anchor="start">left off the</text>
-<text x="412.0" y="151.0" font-size="9.5" fill="#56606e" text-anchor="start">consumer's lane</text>
-<text x="400.0" y="287.0" font-size="10.0" fill="#1b2430" text-anchor="middle">Nothing comes down the lane,</text>
-<text x="400.0" y="301.0" font-size="10.0" fill="#1b2430" text-anchor="middle">so the sibling h2 never gets it.</text>
-<rect x="536.0" y="34.0" width="252.0" height="276.0" rx="5.0" fill="#f2f4f7" stroke="none"/>
-<text x="550.0" y="54.0" font-size="11.5" fill="#1b2430" text-anchor="start" font-weight="bold">3  To the relay</text>
-<text x="550.0" y="69.0" font-size="10.0" fill="#56606e" text-anchor="start">The relay is the publish point.</text>
-<rect x="602.0" y="84.0" width="120.0" height="34.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="662.0" y="105.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">delivery edge</text>
-<rect x="602.0" y="158.0" width="120.0" height="34.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="662.0" y="179.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">relay</text>
-<rect x="550.0" y="236.0" width="96.0" height="34.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="598.0" y="257.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">host h1</text>
-<rect x="678.0" y="236.0" width="96.0" height="34.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="726.0" y="257.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">host h2</text>
-<path d="M614.0,236.0 L632.9,198.3" fill="none" stroke="#14866d" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
-<polygon points="636.0,192.0 635.4,200.7 629.4,197.7" fill="#14866d"/>
-<path d="M662.0,158.0 L662.0,125.0" fill="none" stroke="#14866d" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
-<polygon points="662.0,118.0 665.4,126.0 658.6,126.0" fill="#14866d"/>
-<path d="M688.0,192.0 L715.9,230.3" fill="none" stroke="#1f5fa8" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
-<polygon points="720.0,236.0 712.6,231.5 718.0,227.6" fill="#1f5fa8"/>
-<text x="671.0" y="135.0" font-size="9.5" fill="#56606e" text-anchor="start">from the</text>
-<text x="671.0" y="146.0" font-size="9.5" fill="#56606e" text-anchor="start">consumer's address</text>
-<text x="716.0" y="207.0" font-size="9.5" fill="#56606e" text-anchor="start">copy,</text>
-<text x="716.0" y="218.0" font-size="9.5" fill="#56606e" text-anchor="start">at once</text>
-<text x="662.0" y="287.0" font-size="10.0" fill="#1b2430" text-anchor="middle">h2 has it at once, and nothing</text>
-<text x="662.0" y="301.0" font-size="10.0" fill="#1b2430" text-anchor="middle">of h1's own comes back or is paid for.</text>
-<path d="M14.0,328.0 L41.0,328.0" fill="none" stroke="#14866d" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
-<polygon points="48.0,328.0 40.0,331.4 40.0,324.6" fill="#14866d"/>
-<text x="56.0" y="331.8" font-size="10.5" fill="#56606e" text-anchor="start">publications: submission records, TCP</text>
-<path d="M260.4,328.0 L287.4,328.0" fill="none" stroke="#1f5fa8" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
-<polygon points="294.4,328.0 286.4,331.4 286.4,324.6" fill="#1f5fa8"/>
-<text x="302.4" y="331.8" font-size="10.5" fill="#56606e" text-anchor="start">objects: delivery records, TCP</text>
-<path d="M468.2,328.0 L495.2,328.0" fill="none" stroke="#8a93a0" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
-<polygon points="502.2,328.0 494.2,331.4 494.2,324.6" fill="#8a93a0"/>
-<text x="510.2" y="331.8" font-size="10.5" fill="#56606e" text-anchor="start">does not happen</text>
+<rect x="0.5" y="0.5" width="799" height="343" rx="8" fill="#000000" stroke="#2a3038"/>
+<text x="400.0" y="22.0" font-size="9.5" fill="#aab4c0" text-anchor="middle" font-weight="bold" letter-spacing="0.60">THREE WAYS FOR H1 TO PUBLISH AN OBJECT THAT H1 AND H2 BOTH ASKED FOR</text>
+<rect x="12.0" y="34.0" width="252.0" height="276.0" rx="5.0" fill="#12161b" stroke="none"/>
+<text x="26.0" y="54.0" font-size="11.5" fill="#f2f5f8" text-anchor="start" font-weight="bold">1  From its own address</text>
+<text x="26.0" y="69.0" font-size="10.0" fill="#aab4c0" text-anchor="start">h1 publishes straight to the edge.</text>
+<rect x="78.0" y="84.0" width="120.0" height="34.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="138.0" y="105.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">delivery edge</text>
+<rect x="78.0" y="158.0" width="120.0" height="34.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="138.0" y="179.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">relay</text>
+<rect x="26.0" y="236.0" width="96.0" height="34.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="74.0" y="257.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host h1</text>
+<rect x="154.0" y="236.0" width="96.0" height="34.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="202.0" y="257.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host h2</text>
+<path d="M46.0,236.0 L46.0,101.0 L71.0,101.0" fill="none" stroke="#3dd6a6" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="78.0,101.0 70.0,104.4 70.0,97.6" fill="#3dd6a6"/>
+<path d="M138.0,118.0 L138.0,151.0" fill="none" stroke="#5cabff" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="138.0,158.0 134.6,150.0 141.4,150.0" fill="#5cabff"/>
+<path d="M112.0,192.0 L93.1,229.7" fill="none" stroke="#5cabff" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="90.0,236.0 90.6,227.3 96.6,230.3" fill="#5cabff"/>
+<path d="M164.0,192.0 L191.9,230.3" fill="none" stroke="#5cabff" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="196.0,236.0 188.6,231.5 194.0,227.6" fill="#5cabff"/>
+<text x="147.0" y="142.0" font-size="9.5" fill="#aab4c0" text-anchor="start">down the lane</text>
+<text x="138.0" y="287.0" font-size="10.0" fill="#f2f5f8" text-anchor="middle">h1 is sent its own object back,</text>
+<text x="138.0" y="301.0" font-size="10.0" fill="#f2f5f8" text-anchor="middle">and the consumer pays for that copy.</text>
+<rect x="274.0" y="34.0" width="252.0" height="276.0" rx="5.0" fill="#12161b" stroke="none"/>
+<text x="288.0" y="54.0" font-size="11.5" fill="#f2f5f8" text-anchor="start" font-weight="bold">2  From the consumer's address</text>
+<text x="288.0" y="69.0" font-size="10.0" fill="#aab4c0" text-anchor="start">h1 publishes straight to the edge.</text>
+<rect x="340.0" y="84.0" width="120.0" height="34.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="400.0" y="105.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">delivery edge</text>
+<rect x="340.0" y="158.0" width="120.0" height="34.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="400.0" y="179.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">relay</text>
+<rect x="288.0" y="236.0" width="96.0" height="34.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="336.0" y="257.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host h1</text>
+<rect x="416.0" y="236.0" width="96.0" height="34.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="464.0" y="257.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host h2</text>
+<path d="M308.0,236.0 L308.0,101.0 L333.0,101.0" fill="none" stroke="#3dd6a6" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="340.0,101.0 332.0,104.4 332.0,97.6" fill="#3dd6a6"/>
+<path d="M400.0,118.0 L400.0,151.0" fill="none" stroke="#808a97" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
+<polygon points="400.0,158.0 396.6,150.0 403.4,150.0" fill="#808a97"/>
+<path d="M395.0,131.0 L405.0,141.0 M395.0,141.0 L405.0,131.0" stroke="#808a97" stroke-width="2.2" stroke-linecap="round"/>
+<path d="M426.0,192.0 L453.9,230.3" fill="none" stroke="#808a97" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
+<polygon points="458.0,236.0 450.6,231.5 456.0,227.6" fill="#808a97"/>
+<text x="412.0" y="140.0" font-size="9.5" fill="#aab4c0" text-anchor="start">left off the</text>
+<text x="412.0" y="151.0" font-size="9.5" fill="#aab4c0" text-anchor="start">consumer's lane</text>
+<text x="400.0" y="287.0" font-size="10.0" fill="#f2f5f8" text-anchor="middle">Nothing comes down the lane,</text>
+<text x="400.0" y="301.0" font-size="10.0" fill="#f2f5f8" text-anchor="middle">so the sibling h2 never gets it.</text>
+<rect x="536.0" y="34.0" width="252.0" height="276.0" rx="5.0" fill="#12161b" stroke="none"/>
+<text x="550.0" y="54.0" font-size="11.5" fill="#f2f5f8" text-anchor="start" font-weight="bold">3  To the relay</text>
+<text x="550.0" y="69.0" font-size="10.0" fill="#aab4c0" text-anchor="start">The relay is the publish point.</text>
+<rect x="602.0" y="84.0" width="120.0" height="34.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="662.0" y="105.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">delivery edge</text>
+<rect x="602.0" y="158.0" width="120.0" height="34.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="662.0" y="179.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">relay</text>
+<rect x="550.0" y="236.0" width="96.0" height="34.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="598.0" y="257.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host h1</text>
+<rect x="678.0" y="236.0" width="96.0" height="34.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="726.0" y="257.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host h2</text>
+<path d="M614.0,236.0 L632.9,198.3" fill="none" stroke="#3dd6a6" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="636.0,192.0 635.4,200.7 629.4,197.7" fill="#3dd6a6"/>
+<path d="M662.0,158.0 L662.0,125.0" fill="none" stroke="#3dd6a6" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="662.0,118.0 665.4,126.0 658.6,126.0" fill="#3dd6a6"/>
+<path d="M688.0,192.0 L715.9,230.3" fill="none" stroke="#5cabff" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="720.0,236.0 712.6,231.5 718.0,227.6" fill="#5cabff"/>
+<text x="671.0" y="135.0" font-size="9.5" fill="#aab4c0" text-anchor="start">from the</text>
+<text x="671.0" y="146.0" font-size="9.5" fill="#aab4c0" text-anchor="start">consumer's address</text>
+<text x="716.0" y="207.0" font-size="9.5" fill="#aab4c0" text-anchor="start">copy,</text>
+<text x="716.0" y="218.0" font-size="9.5" fill="#aab4c0" text-anchor="start">at once</text>
+<text x="662.0" y="287.0" font-size="10.0" fill="#f2f5f8" text-anchor="middle">h2 has it at once, and nothing</text>
+<text x="662.0" y="301.0" font-size="10.0" fill="#f2f5f8" text-anchor="middle">of h1's own comes back or is paid for.</text>
+<path d="M14.0,328.0 L41.0,328.0" fill="none" stroke="#3dd6a6" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="48.0,328.0 40.0,331.4 40.0,324.6" fill="#3dd6a6"/>
+<text x="56.0" y="331.8" font-size="10.5" fill="#aab4c0" text-anchor="start">publications: submission records, TCP</text>
+<path d="M260.4,328.0 L287.4,328.0" fill="none" stroke="#5cabff" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt"/>
+<polygon points="294.4,328.0 286.4,331.4 286.4,324.6" fill="#5cabff"/>
+<text x="302.4" y="331.8" font-size="10.5" fill="#aab4c0" text-anchor="start">objects: delivery records, TCP</text>
+<path d="M468.2,328.0 L495.2,328.0" fill="none" stroke="#808a97" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="butt" stroke-dasharray="5,4"/>
+<polygon points="502.2,328.0 494.2,331.4 494.2,324.6" fill="#808a97"/>
+<text x="510.2" y="331.8" font-size="10.5" fill="#aab4c0" text-anchor="start">does not happen</text>
 </svg>

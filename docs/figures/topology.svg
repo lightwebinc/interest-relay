@@ -1,57 +1,57 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="336" viewBox="0 0 800 336" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Interest travels hop by hop, from the hosts through the relays to the delivery edge, and stops there">
 <title>Interest travels hop by hop, from the hosts through the relays to the delivery edge, and stops there</title>
-<rect x="0.5" y="0.5" width="799" height="335" rx="8" fill="#ffffff" stroke="#e2e6e8"/>
-<rect x="10.0" y="30.0" width="530.0" height="252.0" rx="5.0" fill="#f2f4f7" stroke="none"/>
-<rect x="722.0" y="30.0" width="68.0" height="252.0" rx="5.0" fill="#f2f4f7" stroke="none"/>
-<text x="275.0" y="22.0" font-size="9.5" fill="#56606e" text-anchor="middle" font-weight="bold" letter-spacing="0.60">THE CONSUMER'S NETWORK</text>
-<text x="580.0" y="22.0" font-size="9.5" fill="#56606e" text-anchor="middle" font-weight="bold" letter-spacing="0.60">TUNNEL</text>
-<text x="668.0" y="22.0" font-size="9.5" fill="#56606e" text-anchor="middle" font-weight="bold" letter-spacing="0.60">EDGE</text>
-<text x="756.0" y="22.0" font-size="9.5" fill="#56606e" text-anchor="middle" font-weight="bold" letter-spacing="0.60">FABRIC</text>
-<rect x="26.0" y="58.0" width="100.0" height="42.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="76.0" y="76.5" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">host h1</text>
-<text x="76.0" y="90.5" font-size="10.5" fill="#56606e" text-anchor="middle">wants a, b</text>
-<rect x="26.0" y="118.0" width="100.0" height="42.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="76.0" y="136.5" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">host h2</text>
-<text x="76.0" y="150.5" font-size="10.5" fill="#56606e" text-anchor="middle">wants b, c</text>
-<rect x="26.0" y="218.0" width="100.0" height="42.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="76.0" y="236.5" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">host h3</text>
-<text x="76.0" y="250.5" font-size="10.5" fill="#56606e" text-anchor="middle">wants d</text>
-<rect x="160.0" y="91.0" width="62.0" height="36.0" rx="5.0" fill="#ffffff" stroke="#8a93a0" stroke-width="1.20"/>
-<text x="191.0" y="113.2" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">router</text>
-<rect x="262.0" y="84.0" width="126.0" height="50.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="325.0" y="106.5" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">relay</text>
-<text x="325.0" y="120.5" font-size="10.5" fill="#56606e" text-anchor="middle">holds a, b, c</text>
-<rect x="400.0" y="150.0" width="126.0" height="50.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="463.0" y="172.5" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">relay</text>
-<text x="463.0" y="186.5" font-size="10.5" fill="#56606e" text-anchor="middle">holds a, b, c, d</text>
-<rect x="618.0" y="150.0" width="96.0" height="50.0" rx="5.0" fill="#ffffff" stroke="#1b2430" stroke-width="1.20"/>
-<text x="666.0" y="172.5" font-size="12.0" fill="#1b2430" text-anchor="middle" font-weight="bold">delivery edge</text>
-<text x="666.0" y="186.5" font-size="10.5" fill="#56606e" text-anchor="middle">holds a, b, c, d</text>
-<path d="M126.0,79.0 L160.0,103.0" fill="none" stroke="#c2570f" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
-<path d="M126.0,139.0 L160.0,115.0" fill="none" stroke="#c2570f" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
-<path d="M222.0,109.0 L255.0,109.0" fill="none" stroke="#c2570f" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
-<polygon points="262.0,109.0 254.0,112.4 254.0,105.6" fill="#c2570f"/>
-<path d="M388.0,109.0 L463.0,109.0 L463.0,143.0" fill="none" stroke="#c2570f" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
-<polygon points="463.0,150.0 459.6,142.0 466.4,142.0" fill="#c2570f"/>
-<path d="M126.0,239.0 L463.0,239.0 L463.0,207.0" fill="none" stroke="#c2570f" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
-<polygon points="463.0,200.0 466.4,208.0 459.6,208.0" fill="#c2570f"/>
-<rect x="548.0" y="164.0" width="62.0" height="22.0" rx="11.0" fill="#eceef1" stroke="#8a93a0" stroke-width="1.00"/>
-<path d="M526.0,175.0 L611.0,175.0" fill="none" stroke="#c2570f" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
-<polygon points="618.0,175.0 610.0,178.4 610.0,171.6" fill="#c2570f"/>
-<text x="191.0" y="142.0" font-size="9.5" fill="#56606e" text-anchor="middle">forwards IP,</text>
-<text x="191.0" y="153.0" font-size="9.5" fill="#56606e" text-anchor="middle">holds nothing</text>
-<text x="325.0" y="76.0" font-size="9.5" fill="#56606e" text-anchor="middle">two senders below</text>
-<text x="455.0" y="216.0" font-size="9.5" fill="#56606e" text-anchor="end">at the customer edge</text>
-<text x="290.0" y="232.0" font-size="9.5" fill="#56606e" text-anchor="middle">one hop: host to relay</text>
-<text x="666.0" y="216.0" font-size="9.5" fill="#56606e" text-anchor="middle">one sender</text>
-<text x="666.0" y="232.0" font-size="10.5" fill="#c2570f" text-anchor="middle" font-weight="bold">interest stops here</text>
-<text x="756.0" y="152.0" font-size="10.5" fill="#56606e" text-anchor="middle">objects</text>
-<text x="756.0" y="166.0" font-size="10.5" fill="#56606e" text-anchor="middle">only,</text>
-<text x="756.0" y="180.0" font-size="10.5" fill="#56606e" text-anchor="middle">never</text>
-<text x="756.0" y="194.0" font-size="10.5" fill="#56606e" text-anchor="middle">interest</text>
-<text x="275.0" y="274.0" font-size="10.5" fill="#56606e" text-anchor="middle">Each host and relay is given the address of the hop above it, in the manner of a default route.</text>
-<path d="M14.0,310.0 L41.0,310.0" fill="none" stroke="#c2570f" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
-<polygon points="48.0,310.0 40.0,313.4 40.0,306.6" fill="#c2570f"/>
-<text x="56.0" y="313.8" font-size="10.5" fill="#56606e" text-anchor="start">interest: UDP 8729, one hop at a time</text>
-<text x="300.0" y="313.8" font-size="10.5" fill="#56606e" text-anchor="start">A relay tells the hop above the union of what the hops below it want.</text>
+<rect x="0.5" y="0.5" width="799" height="335" rx="8" fill="#000000" stroke="#2a3038"/>
+<rect x="10.0" y="30.0" width="530.0" height="252.0" rx="5.0" fill="#12161b" stroke="none"/>
+<rect x="722.0" y="30.0" width="68.0" height="252.0" rx="5.0" fill="#12161b" stroke="none"/>
+<text x="275.0" y="22.0" font-size="9.5" fill="#aab4c0" text-anchor="middle" font-weight="bold" letter-spacing="0.60">THE CONSUMER'S NETWORK</text>
+<text x="580.0" y="22.0" font-size="9.5" fill="#aab4c0" text-anchor="middle" font-weight="bold" letter-spacing="0.60">TUNNEL</text>
+<text x="668.0" y="22.0" font-size="9.5" fill="#aab4c0" text-anchor="middle" font-weight="bold" letter-spacing="0.60">EDGE</text>
+<text x="756.0" y="22.0" font-size="9.5" fill="#aab4c0" text-anchor="middle" font-weight="bold" letter-spacing="0.60">FABRIC</text>
+<rect x="26.0" y="58.0" width="100.0" height="42.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="76.0" y="76.5" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host h1</text>
+<text x="76.0" y="90.5" font-size="10.5" fill="#aab4c0" text-anchor="middle">wants a, b</text>
+<rect x="26.0" y="118.0" width="100.0" height="42.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="76.0" y="136.5" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host h2</text>
+<text x="76.0" y="150.5" font-size="10.5" fill="#aab4c0" text-anchor="middle">wants b, c</text>
+<rect x="26.0" y="218.0" width="100.0" height="42.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="76.0" y="236.5" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">host h3</text>
+<text x="76.0" y="250.5" font-size="10.5" fill="#aab4c0" text-anchor="middle">wants d</text>
+<rect x="160.0" y="91.0" width="62.0" height="36.0" rx="5.0" fill="#000000" stroke="#808a97" stroke-width="1.20"/>
+<text x="191.0" y="113.2" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">router</text>
+<rect x="262.0" y="84.0" width="126.0" height="50.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="325.0" y="106.5" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">relay</text>
+<text x="325.0" y="120.5" font-size="10.5" fill="#aab4c0" text-anchor="middle">holds a, b, c</text>
+<rect x="400.0" y="150.0" width="126.0" height="50.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="463.0" y="172.5" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">relay</text>
+<text x="463.0" y="186.5" font-size="10.5" fill="#aab4c0" text-anchor="middle">holds a, b, c, d</text>
+<rect x="618.0" y="150.0" width="96.0" height="50.0" rx="5.0" fill="#000000" stroke="#f2f5f8" stroke-width="1.20"/>
+<text x="666.0" y="172.5" font-size="12.0" fill="#f2f5f8" text-anchor="middle" font-weight="bold">delivery edge</text>
+<text x="666.0" y="186.5" font-size="10.5" fill="#aab4c0" text-anchor="middle">holds a, b, c, d</text>
+<path d="M126.0,79.0 L160.0,103.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<path d="M126.0,139.0 L160.0,115.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<path d="M222.0,109.0 L255.0,109.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="262.0,109.0 254.0,112.4 254.0,105.6" fill="#ff9a45"/>
+<path d="M388.0,109.0 L463.0,109.0 L463.0,143.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="463.0,150.0 459.6,142.0 466.4,142.0" fill="#ff9a45"/>
+<path d="M126.0,239.0 L463.0,239.0 L463.0,207.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="463.0,200.0 466.4,208.0 459.6,208.0" fill="#ff9a45"/>
+<rect x="548.0" y="164.0" width="62.0" height="22.0" rx="11.0" fill="#1d232b" stroke="#808a97" stroke-width="1.00"/>
+<path d="M526.0,175.0 L611.0,175.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="618.0,175.0 610.0,178.4 610.0,171.6" fill="#ff9a45"/>
+<text x="191.0" y="142.0" font-size="9.5" fill="#aab4c0" text-anchor="middle">forwards IP,</text>
+<text x="191.0" y="153.0" font-size="9.5" fill="#aab4c0" text-anchor="middle">holds nothing</text>
+<text x="325.0" y="76.0" font-size="9.5" fill="#aab4c0" text-anchor="middle">two senders below</text>
+<text x="455.0" y="216.0" font-size="9.5" fill="#aab4c0" text-anchor="end">at the customer edge</text>
+<text x="290.0" y="232.0" font-size="9.5" fill="#aab4c0" text-anchor="middle">one hop: host to relay</text>
+<text x="666.0" y="216.0" font-size="9.5" fill="#aab4c0" text-anchor="middle">one sender</text>
+<text x="666.0" y="232.0" font-size="10.5" fill="#ff9a45" text-anchor="middle" font-weight="bold">interest stops here</text>
+<text x="756.0" y="152.0" font-size="10.5" fill="#aab4c0" text-anchor="middle">objects</text>
+<text x="756.0" y="166.0" font-size="10.5" fill="#aab4c0" text-anchor="middle">only,</text>
+<text x="756.0" y="180.0" font-size="10.5" fill="#aab4c0" text-anchor="middle">never</text>
+<text x="756.0" y="194.0" font-size="10.5" fill="#aab4c0" text-anchor="middle">interest</text>
+<text x="275.0" y="274.0" font-size="10.5" fill="#aab4c0" text-anchor="middle">Each host and relay is given the address of the hop above it, in the manner of a default route.</text>
+<path d="M14.0,310.0 L41.0,310.0" fill="none" stroke="#ff9a45" stroke-width="1.80" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1.5,3.5"/>
+<polygon points="48.0,310.0 40.0,313.4 40.0,306.6" fill="#ff9a45"/>
+<text x="56.0" y="313.8" font-size="10.5" fill="#aab4c0" text-anchor="start">interest: UDP 8729, one hop at a time</text>
+<text x="300.0" y="313.8" font-size="10.5" fill="#aab4c0" text-anchor="start">A relay tells the hop above the union of what the hops below it want.</text>
 </svg>
