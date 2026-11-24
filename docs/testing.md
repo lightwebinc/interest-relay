@@ -94,6 +94,31 @@ It checks, in order:
 4. A host whose lane goes down has its records shed, and the relay stays
    ready.
 
+## The publishing test
+
+`test/netns/publish.sh`, which `make test-netns` also runs, does the same
+for a relay that is its domain's publish point, on the same network:
+
+| Node | Role |
+|---|---|
+| `edge` | a stand-in for the delivery edge: `interest-terminus` for interest, and `lane-sink -submissions` as its ingress, recording the address each submission came from |
+| `ce` | the relay at the customer edge, distributing and publishing |
+| `rtr` | a plain router |
+| `h1`, `h2`, `h3` | hosts one IP hop past the relay, each with a lane it names as its delivery address and a publisher (`lane-feed -submit`) from the same address |
+
+It checks, in order:
+
+1. Every record a host publishes reaches the ingress, and every one from
+   the consumer's own address, which is what makes the edge leave it off
+   the consumer's lane.
+2. A sibling that asked for the topic gets it at once from the relay; the
+   publisher gets nothing of its own, and a host that asked for another
+   topic gets nothing.
+3. Two publishers: each sibling gets exactly the other's records of its
+   topics.
+4. An object over the bound is skipped and counted, and the next record on
+   the same stream still goes up and is copied.
+
 ## The tools
 
 `interest-terminus` stands in for a delivery edge. It can be given a
@@ -158,4 +183,15 @@ lane-feed -to '[2001:db8:f::2]:9171' -n 100 -size 512 tm_example tm_other
 
 `lane-feed` writes `-n` records of `-size` bytes for each topic,
 interleaved, and exits. `lane-sink` prints a line of counts every
-`-report`, with `other` for the topics it was not given the names of.
+`-report`, with `other` for the topics it was not given the names of, and
+the addresses the records came from (`sources`).
+
+With `-submit` (and `-from` for its source address), `lane-feed` writes
+submission records instead, as a host's bridge does, to an ingress or a
+publish point; with `-submissions`, `lane-sink` is an ingress, counting
+submission records by their first topic:
+
+```sh
+lane-sink -submissions -listen '[2001:db8:f::1]:8725' -names tm_example
+lane-feed -submit -from 2001:db8:c:1::10 -to '[2001:db8:b::1]:8725' -n 100 tm_example
+```

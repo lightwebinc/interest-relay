@@ -1,10 +1,13 @@
 // Command lane-feed writes delivery records to a lane, as an edge does, for
-// trying a distributor.
+// trying a distributor; with -submit, it writes submission records to an
+// ingress instead, as a host's bridge does, for trying a publish point.
 //
 //	lane-feed -to [2001:db8::2]:9171 -n 100 -size 512 tm_a tm_b
+//	lane-feed -submit -from 2001:db8:c:1::10 -to [2001:db8:b::1]:8725 tm_a
 //
 // It writes -n records of -size bytes for each topic named, interleaved,
-// then prints "# fed records=N bytes=M" and exits.
+// then prints "# fed records=N bytes=M" and exits. A submitted object leads
+// with a BEEF marker, so it passes an ingress's marker check.
 package main
 
 import (
@@ -26,9 +29,11 @@ func main() {
 
 func run() error {
 	var (
-		to   = flag.String("to", "", "TCP address of the lane (required)")
-		n    = flag.Int("n", 100, "records per topic")
-		size = flag.Int("size", 256, "bytes of object per record")
+		to     = flag.String("to", "", "TCP address of the lane (required)")
+		n      = flag.Int("n", 100, "records per topic")
+		size   = flag.Int("size", 256, "bytes of object per record")
+		submit = flag.Bool("submit", false, "write BRC-149 submission records (to an ingress or a publish point) instead of delivery records")
+		from   = flag.String("from", "", "local address to connect from (default: the kernel's choice)")
 	)
 	flag.Parse()
 	if *to == "" || flag.NArg() == 0 || *n < 1 || *size < 1 {
@@ -39,7 +44,11 @@ func run() error {
 	var c net.Conn
 	var err error
 	for deadline := time.Now().Add(10 * time.Second); ; {
-		if c, err = net.DialTimeout("tcp", *to, 2*time.Second); err == nil || time.Now().After(deadline) {
+		d := net.Dialer{Timeout: 2 * time.Second}
+		if *from != "" {
+			d.LocalAddr = &net.TCPAddr{IP: net.ParseIP(*from)}
+		}
+		if c, err = d.Dial("tcp", *to); err == nil || time.Now().After(deadline) {
 			break
 		}
 		time.Sleep(200 * time.Millisecond)
@@ -52,12 +61,20 @@ func run() error {
 	for i, name := range flag.Args() {
 		ids[i] = objfmt.TopicID(name)
 	}
-	obj := make([]byte, *size)
+	obj := make([]byte, max(*size, 5))
+	copy(obj, []byte{0x01, 0x00, 0xBE, 0xEF}) // BEEF V1's version word
 	records, bytes := 0, 0
 	for i := 0; i < *n; i++ {
-		for _, id := range ids {
-			obj[0] = byte(i)
-			r := objfmt.EncodeBEEFDelivery(id, obj)
+		for k, id := range ids {
+			obj[4] = byte(i)
+			var r []byte
+			if *submit {
+				if r, err = objfmt.EncodeBEEFRecord([]string{flag.Arg(k)}, obj); err != nil {
+					return err
+				}
+			} else {
+				r = objfmt.EncodeBEEFDelivery(id, obj)
+			}
 			if _, err := c.Write(r); err != nil {
 				return err
 			}
