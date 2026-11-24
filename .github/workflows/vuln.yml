@@ -1,0 +1,24 @@
+# Scheduled vulnerability scan. An advisory published against a dependency does
+# not wait for a commit, so detection latency on a quiet repo is unbounded.
+# A red run here means a new advisory hit a dependency; fix by bumping it.
+name: Vuln scan
+
+on:
+  schedule:
+    # Tuesdays and Fridays 04:00 UTC, tracking Renovate's Tue+Fri wave so a
+    # finding has a fix PR behind it the same afternoon rather than waiting out
+    # the rest of the week. CodeQL holds Mondays 03:00, keep them apart so a
+    # failure is unambiguous about which scanner found what.
+    - cron: "0 4 * * 2,5"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  govulncheck:
+    uses: lightwebinc/ci/.github/workflows/govulncheck.yml@addd14064ef61ebf08d01de9b80bda61438880fb # v0.7.1

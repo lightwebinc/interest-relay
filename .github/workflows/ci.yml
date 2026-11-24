@@ -18,7 +18,6 @@ jobs:
   go:
     uses: lightwebinc/ci/.github/workflows/go-host.yml@addd14064ef61ebf08d01de9b80bda61438880fb # v0.7.1
     with:
-      runs-on: '["self-hosted", "lax"]'
       # Pinned here so the toolchain moves with this repository.
       go-version: "1.27.4"
       gofmt: true
