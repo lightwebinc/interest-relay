@@ -143,8 +143,7 @@ publish h1 $H1 100 tm_a
 check "ingress: tm_a, sent up" "field ingress tm_a" 100
 check "ingress: every record from the consumer's own address" "field ingress sources" $CE_UP
 check "h2 (asked for tm_a): copied at once" "field sink_h2 tm_a" 100
-check "h1 (the publisher): nothing of its own" "field sink_h1 total" 0 3
-check "h3 (asked for tm_b only): nothing" "field sink_h3 total" 0 3
+check "h3 (asked for tm_b only): nothing yet" "field sink_h3 total" 0 3
 check "relay: accepted" "metric bir_publish_accepted_total" 100
 check "relay: confirmed by the ingress" "metric bir_publish_confirmed_total" 100 30
 check "relay: copies" "metric bir_publish_copies_total" 100
@@ -155,18 +154,20 @@ check "ingress: tm_b" "field ingress tm_b" 50
 check "ingress: tm_a" "field ingress tm_a" 150
 check "h3 (asked for tm_b): tm_b" "field sink_h3 tm_b" 50
 check "h1 (asked for tm_a): h2's tm_a" "field sink_h1 tm_a" 50
-check "h2 (the publisher): only h1's 100, nothing of its own" "field sink_h2 total" 100 3
 check "relay: copies" "metric bir_publish_copies_total" 200
 
-echo "== an object over the bound is skipped; the stream goes on"
-ip netns exec h1 "$BIN/lane-feed" -submit -from $H1 -to "[$CE]:8725" -n 1 -size $((2 << 20)) tm_a >>"$work/feed_h1.log"
-publish h1 $H1 1 tm_a
+echo "== an object over the bound, then a record, on one stream: the first is skipped, the stream goes on"
+ip netns exec h1 "$BIN/lane-feed" -submit -from $H1 -to "[$CE]:8725" -n 2 -lead-size $((2 << 20)) -size 512 tm_a >>"$work/feed_h1.log"
 check "relay: oversize refused" "metric 'bir_publish_refused_total{reason=\"oversize\"}'" 1
-check "ingress: the next record still arrives" "field ingress tm_a" 151
+check "ingress: the next record on the same stream arrives" "field ingress tm_a" 151
 check "h2: and is copied" "field sink_h2 tm_a" 101
 
-sleep 1
-check "h1, in all: h2's 50, none of its own 101" "field sink_h1 total" 50 3
+echo "== settled: nothing anyone published came back to it"
+sleep 2
+check "h1, in all: h2's 50 tm_a, none of its own 101" "field sink_h1 total" 50 1
+check "h2, in all: h1's 101 tm_a, none of its own 100" "field sink_h2 total" 101 1
+check "h3, in all: h2's 50 tm_b, nothing of tm_a" "field sink_h3 total" 50 1
+check "ingress: every record from the consumer's own address" "field ingress sources" $CE_UP 1
 check "relay: still ready" "metric bir_ready" 1
 if [ "$failed" = 0 ]; then echo PASS; else echo FAIL; fi
 exit "$failed"

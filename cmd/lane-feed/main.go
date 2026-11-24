@@ -34,19 +34,29 @@ func run() error {
 		size   = flag.Int("size", 256, "bytes of object per record")
 		submit = flag.Bool("submit", false, "write BRC-149 submission records (to an ingress or a publish point) instead of delivery records")
 		from   = flag.String("from", "", "local address to connect from (default: the kernel's choice)")
+		lead   = flag.Int("lead-size", 0, "bytes of object of the first record only (0: -size), to put one odd record on the same stream as the rest")
 	)
 	flag.Parse()
-	if *to == "" || flag.NArg() == 0 || *n < 1 || *size < 1 {
+	if *to == "" || flag.NArg() == 0 || *n < 1 || *size < 1 || *lead < 0 {
 		flag.Usage()
 		return fmt.Errorf("-to and at least one topic are required; -n and -size at least 1")
+	}
+	if *submit && (*size < 5 || (*lead > 0 && *lead < 5)) {
+		return fmt.Errorf("-submit objects lead with a 4-byte BEEF marker and a counter: -size and -lead-size at least 5")
+	}
+	var src net.IP
+	if *from != "" {
+		if src = net.ParseIP(*from); src == nil {
+			return fmt.Errorf("-from %q is not an address", *from)
+		}
 	}
 	// The lane may not be listening yet: dial for a while, as an edge does.
 	var c net.Conn
 	var err error
 	for deadline := time.Now().Add(10 * time.Second); ; {
 		d := net.Dialer{Timeout: 2 * time.Second}
-		if *from != "" {
-			d.LocalAddr = &net.TCPAddr{IP: net.ParseIP(*from)}
+		if src != nil {
+			d.LocalAddr = &net.TCPAddr{IP: src}
 		}
 		if c, err = d.Dial("tcp", *to); err == nil || time.Now().After(deadline) {
 			break
@@ -61,12 +71,22 @@ func run() error {
 	for i, name := range flag.Args() {
 		ids[i] = objfmt.TopicID(name)
 	}
-	obj := make([]byte, max(*size, 5))
-	copy(obj, []byte{0x01, 0x00, 0xBE, 0xEF}) // BEEF V1's version word
+	object := func(n int) []byte {
+		o := make([]byte, n)
+		if *submit {
+			copy(o, []byte{0x01, 0x00, 0xBE, 0xEF}) // BEEF V1's version word
+		}
+		return o
+	}
+	body := object(*size)
 	records, bytes := 0, 0
 	for i := 0; i < *n; i++ {
 		for k, id := range ids {
-			obj[4] = byte(i)
+			obj := body
+			if i == 0 && k == 0 && *lead > 0 {
+				obj = object(*lead)
+			}
+			obj[min(4, len(obj)-1)] = byte(i)
 			var r []byte
 			if *submit {
 				if r, err = objfmt.EncodeBEEFRecord([]string{flag.Arg(k)}, obj); err != nil {
