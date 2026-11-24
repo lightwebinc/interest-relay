@@ -476,3 +476,73 @@ func TestOnlyUnicastRecords(t *testing.T) {
 		t.Fatalf("stats %+v", st)
 	}
 }
+
+// sub is a delivery record under the first name whose object is a
+// submission record naming names, as the edge sends one.
+func sub(t *testing.T, names ...string) []byte {
+	t.Helper()
+	r, err := objfmt.EncodeBEEFRecord(names, []byte{0x01, 0x00, 0xBE, 0xEF, 0x42})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return objfmt.EncodeBEEFDelivery(objfmt.TopicID(names[0]), r)
+}
+
+// The edge delivers a record to a consumer that asked for any of its first
+// deliverable names, always under the first name's TopicID: a host that
+// asked for the second name gets it, once; one that asked for a label (past
+// the deliverable names) does not.
+func TestRoutedByDeliverableNames(t *testing.T) {
+	a, b, c := newSink(t, true), newSink(t, true), newSink(t, true)
+	d, lane := start(t, Config{DeliverTopics: 3})
+	d.Route(tid("x"), route(a.addr()), true)
+	d.Route(tid("y"), route(a.addr()), true) // a asked for two of its names: one copy
+	d.Route(tid("z"), route(b.addr()), true)
+	d.Route(tid("w"), route(c.addr()), true) // the fourth name, a label
+	r := sub(t, "x", "y", "z", "w")
+	write(t, lane, r)
+	if got := a.waitFor(t, 1); !bytes.Equal(got[0], r) {
+		t.Fatalf("a got %x", got[0])
+	}
+	if got := b.waitFor(t, 1); !bytes.Equal(got[0], r) {
+		t.Fatalf("b got %x", got[0])
+	}
+	time.Sleep(100 * time.Millisecond)
+	if a.count() != 1 || c.count() != 0 {
+		t.Fatalf("a %d (want 1), c %d (want 0)", a.count(), c.count())
+	}
+	if ids := DeliveryTopics(r, 1); len(ids) != 1 || ids[0] != tid("x") {
+		t.Fatalf("one deliverable name: %x", ids)
+	}
+	if ids := DeliveryTopics(rec("x", "bare object"), 3); len(ids) != 1 {
+		t.Fatalf("a bare object: %x", ids)
+	}
+}
+
+// Copy offers a record to every host that asked for any of its topics but
+// those at the publisher's address.
+func TestCopySkipsThePublisher(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.2:0")
+	if err != nil {
+		t.Skip("no 127.0.0.2 on this host:", err)
+	}
+	sibling := serveSink(t, ln, true)
+	self := newSink(t, true) // 127.0.0.1, the publisher's own lane
+	d, _ := start(t, Config{})
+	d.Route(tid("x"), route(sibling.addr()), true)
+	d.Route(tid("x"), route(self.addr()), true)
+	r := sub(t, "x")
+	if n := d.Copy([]interest.TopicID{tid("x")}, r, netip.MustParseAddr("::ffff:127.0.0.1")); n != 1 {
+		t.Fatalf("copied to %d hosts, want 1", n)
+	}
+	if got := sibling.waitFor(t, 1); !bytes.Equal(got[0], r) {
+		t.Fatalf("sibling got %x", got[0])
+	}
+	time.Sleep(100 * time.Millisecond)
+	if self.count() != 0 {
+		t.Fatal("the publisher was sent its own record")
+	}
+	if st := d.Stats(); st.CopiesIn != 1 || st.Copied != 1 {
+		t.Fatalf("stats %+v", st)
+	}
+}

@@ -23,6 +23,7 @@ import (
 	"log/slog"
 	"net"
 	"net/netip"
+	"slices"
 	"sort"
 	"sync"
 	"sync/atomic"
@@ -38,6 +39,10 @@ const (
 	DefaultMaxRecord = objfmt.BEEFDeliveryHeaderSize + objfmt.DefaultMaxObject
 	// DefaultQueue is how many records may wait for one host.
 	DefaultQueue = 1024
+	// DefaultDeliverTopics is how many of a record's leading topic names are
+	// deliverable: the edge's cap for a consumer tunnel (an authenticated
+	// source; -beef-max-topics).
+	DefaultDeliverTopics = 3
 	// DefaultQueueBytes is how many bytes may wait for one host. A slow host
 	// is shed at whichever bound it reaches first, so a queue of large
 	// objects cannot hold the relay's memory.
@@ -63,6 +68,12 @@ type Config struct {
 	QueueBytes int64
 	// DialTimeout bounds one connection attempt to a host. Zero is 5 s.
 	DialTimeout time.Duration
+	// DeliverTopics is how many of a record's leading topic names it is
+	// delivered on. The edge sends a record to a consumer that asked for
+	// any of them, always under the first name's TopicID, so a host that
+	// asked for the second is routed by the names in the record, not by
+	// its header alone. Zero uses DefaultDeliverTopics.
+	DeliverTopics int
 	// Logger defaults to slog.Default.
 	Logger *slog.Logger
 }
@@ -84,6 +95,8 @@ type Distributor struct {
 	bytesIn   atomic.Uint64
 	unrouted  atomic.Uint64
 	malformed atomic.Uint64
+	copiesIn  atomic.Uint64 // records handed to Copy
+	copied    atomic.Uint64 // copies offered to hosts by Copy
 }
 
 // New builds a distributor. Run it with [Distributor.Serve], and feed it
@@ -100,6 +113,9 @@ func New(cfg Config) *Distributor {
 	}
 	if cfg.DialTimeout <= 0 {
 		cfg.DialTimeout = 5 * time.Second
+	}
+	if cfg.DeliverTopics <= 0 {
+		cfg.DeliverTopics = DefaultDeliverTopics
 	}
 	if cfg.Logger == nil {
 		cfg.Logger = slog.Default()
@@ -260,18 +276,68 @@ func (d *Distributor) lane(ctx context.Context, c net.Conn) {
 		}
 		d.recordsIn.Add(1)
 		d.bytesIn.Add(uint64(total))
-		var topic interest.TopicID
-		copy(topic[:], rec[:32])
-		d.mu.RLock()
-		hs := d.routes[topic]
-		for _, h := range hs {
-			h.offer(rec)
-		}
-		d.mu.RUnlock()
-		if len(hs) == 0 {
+		if d.offer(DeliveryTopics(rec, d.cfg.DeliverTopics), rec, netip.Addr{}) == 0 {
 			d.unrouted.Add(1)
 		}
 	}
+}
+
+// DeliveryTopics are the TopicIDs a delivery record is delivered on: its
+// header's, then, when its object is a submission record, the TopicIDs of
+// the record's next names up to deliver in all. A record the edge sent for
+// any of them belongs to every host that asked for any of them.
+func DeliveryTopics(rec []byte, deliver int) []interest.TopicID {
+	var first interest.TopicID
+	copy(first[:], rec[:32])
+	ids := []interest.TopicID{first}
+	if deliver <= 1 {
+		return ids
+	}
+	_, names, err := objfmt.SplitBEEFPayload(rec[objfmt.BEEFDeliveryHeaderSize:])
+	if err != nil || len(names) < 2 {
+		return ids
+	}
+	for _, n := range names[1:min(deliver, len(names))] {
+		ids = append(ids, interest.TopicID(objfmt.TopicID(n)))
+	}
+	return ids
+}
+
+// Copy offers a delivery record to every host routed for any of ids,
+// except the hosts at skip, and returns how many it was offered to. It is
+// the relay's publish path: a submission one host sends upward is copied at
+// once to its siblings that asked for its topics, never back to its
+// publisher. It never blocks, like the lane.
+func (d *Distributor) Copy(ids []interest.TopicID, rec []byte, skip netip.Addr) int {
+	d.copiesIn.Add(1)
+	n := d.offer(ids, rec, skip.Unmap())
+	d.copied.Add(uint64(n))
+	return n
+}
+
+// offer offers rec once to each host routed for any of ids, skipping hosts
+// at skip, and returns how many hosts it was offered to.
+func (d *Distributor) offer(ids []interest.TopicID, rec []byte, skip netip.Addr) int {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	if len(ids) == 1 && !skip.IsValid() {
+		hs := d.routes[ids[0]]
+		for _, h := range hs {
+			h.offer(rec)
+		}
+		return len(hs)
+	}
+	var done []*host
+	for _, id := range ids {
+		for _, h := range d.routes[id] {
+			if (skip.IsValid() && h.addr.Addr() == skip) || slices.Contains(done, h) {
+				continue
+			}
+			done = append(done, h)
+			h.offer(rec)
+		}
+	}
+	return len(done)
 }
 
 // host is one downstream: a TCP stream of the records of every topic routed
@@ -463,6 +529,8 @@ type Stats struct {
 	BytesIn   uint64
 	Unrouted  uint64 // records whose topic no host asked for
 	Malformed uint64 // lanes closed for a malformed record
+	CopiesIn  uint64 // records handed to Copy (the publish path)
+	Copied    uint64 // copies Copy offered to hosts
 	Routes    int    // (topic, host) pairs
 	Hosts     []HostStats
 }
@@ -476,6 +544,8 @@ func (d *Distributor) Stats() Stats {
 		BytesIn:   d.bytesIn.Load(),
 		Unrouted:  d.unrouted.Load(),
 		Malformed: d.malformed.Load(),
+		CopiesIn:  d.copiesIn.Load(),
+		Copied:    d.copied.Load(),
 	}
 	for _, hs := range d.routes {
 		st.Routes += len(hs)

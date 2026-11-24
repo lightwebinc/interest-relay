@@ -149,7 +149,13 @@ distributing relay above does honor it, so distributing relays can be
 stacked.
 
 Each record that arrives on the lane is written, unchanged, to every host
-that asked for its topic, on one TCP stream per host. A record that no host
+that asked for any of its deliverable topics, on one TCP stream per host.
+The edge delivers a record under its first topic's TopicID to a consumer
+that asked for any of the record's first few names (`-deliver-topics`, the
+edge's cap for a consumer tunnel, 3 by default), so the relay reads the
+names in the record too: a host that asked for the second name gets it, a
+host that asked for two of its names gets it once, and a host that asked
+for a label past the deliverable names does not. A record that no host
 asked for is counted and dropped. Routes follow interest: a host's records
 start when its address is honored and stop when its topics are withdrawn
 or lapse. Two senders that name the same address for a topic make one
@@ -176,6 +182,58 @@ of hosts.
 The lane listener checks no source address. As for any lane endpoint, let
 only the delivery edge, or the distributing relay above, reach
 `-distribute-listen`.
+
+## Publishing
+
+Off by default; it needs distribution. With `-publish-listen` set, the
+relay is also its domain's publish point: the hosts publish to it, and it
+publishes for them.
+
+```text
+            ┌──── h1 publishes ────┐
+            │                      ▼
+ edge ◀══ tunnel, from the ══ relay ──▶ h2, h3   at once, if they asked
+          consumer's address           (never back to h1)
+```
+
+Hosts behind one relay share one consumer: one tunnel and one lane. The
+edge leaves a consumer's own publications off its lane, matching the address
+a submission came from against the consumer's own. A host that publishes
+through the tunnel from that address never reaches its siblings through the
+edge; one that publishes from another address is sent its own object back,
+and the consumer pays for that copy. The relay solves both:
+
+| Step | What the relay does |
+|---|---|
+| take | each BRC-149 submission record a host sends to `-publish-listen` (a bridge's `-edge-ingress` names the relay); a connection from outside `-allow` is closed |
+| bound | the edge's ingress bounds, applied before anything is copied: the object size (`-publish-max-object-mib`) and its BEEF marker, a host's budget and the relay's (objects and MiB per second). A record that fails one is skipped and counted, and the stream goes on |
+| up | the record, unchanged, up the tunnel from the consumer's own address (`-publish-source`) to the edge's ingress (`-publish-ingress`), through the overlay bridge's up-tunnel client: failover and fail-back between the ingress addresses, and a record counted confirmed only once the ingress acknowledged it |
+| copy | once the up-tunnel queue has taken the record, the delivery record the edge would send (the first name's TopicID, then the record) to every host that asked for any of its deliverable names, through the distributor, skipping hosts at the publisher's address |
+
+What follows:
+
+- Nothing of a host's own comes back from the edge, or is billed: the
+  relay publishes from the consumer's address, which the edge excludes.
+- Siblings get the object without the round trip to the edge and back.
+- Every other consumer gets it from the edge as before.
+- A record the up-tunnel queue cannot take is not copied, so a sibling
+  never holds what the other consumers will not get.
+
+It keeps no state beyond what it has: which host asked for which topic,
+refreshed by the hosts. No object is remembered. The publisher is skipped by
+its source address, so a host should publish from the address it names its
+lane at.
+
+It scales by consumers, not by relays talking to each other. One relay
+serves one consumer; a domain larger than one relay serves becomes several
+consumers, each a tunnel with its own relay. The edge copies between them
+as it copies between any consumers, and each relay copies only among its
+own hosts.
+
+A host's bridge may list the edge's ingress after the relay in its
+`-edge-ingress`, for when the relay is down. It then publishes from its own
+address and is sent its own objects back until the relay returns, which
+costs a duplicate, not a loss.
 
 ## What the relay does not do
 

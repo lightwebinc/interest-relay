@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/lightwebinc/interest-relay/distributor"
+	"github.com/lightwebinc/interest-relay/publish"
 	"github.com/lightwebinc/shard-common/interest"
 	"github.com/lightwebinc/shard-common/objfmt"
 )
@@ -63,6 +64,25 @@ type Config struct {
 	DistributeQueue      int
 	DistributeQueueBytes int64
 	DistributeMaxRecord  int
+	// DeliverTopics is how many of a record's leading topic names the edge
+	// delivers it on: what the distributor routes by and the publish point
+	// copies by.
+	DeliverTopics int
+
+	// PublishListen turns on the publish point (item L2): the TCP address
+	// the hosts' bridges publish to (their -edge-ingress). PublishIngress
+	// are the edge's ingress addresses in failover order, and PublishSource
+	// the consumer's own address, the tunnel's inner address.
+	PublishListen  string
+	PublishIngress []string
+	PublishSource  netip.Addr
+	// PublishMaxObject bounds one object. The rates are a host's budget and
+	// the relay's, per second; zero is no limit.
+	PublishMaxObject                         int
+	PublishSourceObjects, PublishSourceBytes float64
+	PublishObjects, PublishBytes             float64
+	PublishQueue                             int
+	PublishQueueBytes                        int64
 
 	MetricsAddr string
 	InstanceID  string
@@ -105,6 +125,17 @@ func parse(fs *flag.FlagSet, args []string, getenv func(string) string) (*Config
 		distQueue    = fs.Int("distribute-queue", envInt(getenv, "DISTRIBUTE_QUEUE", distributor.DefaultQueue), "records that may wait for one host before it is shed")
 		distQueueMiB = fs.Int("distribute-queue-mib", envInt(getenv, "DISTRIBUTE_QUEUE_MIB", distributor.DefaultQueueBytes>>20), "MiB that may wait for one host before it is shed")
 		distMaxMiB   = fs.Int("distribute-max-object-mib", envInt(getenv, "DISTRIBUTE_MAX_OBJECT_MIB", objfmt.DefaultMaxObject>>20), "largest object on the lane, in MiB; a longer record closes the lane")
+		deliver      = fs.Int("deliver-topics", envInt(getenv, "DELIVER_TOPICS", distributor.DefaultDeliverTopics), "how many of a record's leading topic names the edge delivers it on (its -beef-max-topics for a consumer tunnel): the distributor routes, and the publish point copies, by these")
+		pubListen    = fs.String("publish-listen", env("PUBLISH_LISTEN", ""), "TCP address the hosts' bridges publish to (their -edge-ingress); turns on the publish point: each submission goes up the tunnel from -publish-source and is copied at once to the sibling hosts that asked for its topics. Empty is off")
+		pubIngress   = fs.String("publish-ingress", env("PUBLISH_INGRESS", ""), "the edge's ingress addresses, host:port, comma list in failover order (side A then side B)")
+		pubSource    = fs.String("publish-source", env("PUBLISH_SOURCE", ""), "the consumer's own address (the tunnel's inner address), which the edge excludes from the consumer's lane; publishing from any other would send every host its own objects back")
+		pubMaxMiB    = fs.Int("publish-max-object-mib", envInt(getenv, "PUBLISH_MAX_OBJECT_MIB", publish.DefaultMaxObject>>20), "largest object taken, in MiB (the edge's bound for a consumer tunnel)")
+		pubSrcObjs   = fs.Float64("publish-source-objects-per-sec", envFloat(getenv, "PUBLISH_SOURCE_OBJECTS_PER_SEC", publish.DefaultObjectsPerSec), "one host's budget, objects per second; 0 is no limit")
+		pubSrcMiB    = fs.Float64("publish-source-mib-per-sec", envFloat(getenv, "PUBLISH_SOURCE_MIB_PER_SEC", publish.DefaultBytesPerSec>>20), "one host's budget, MiB per second; 0 is no limit")
+		pubObjs      = fs.Float64("publish-objects-per-sec", envFloat(getenv, "PUBLISH_OBJECTS_PER_SEC", publish.DefaultObjectsPerSec), "the relay's budget, objects per second: the edge's for one source; 0 is no limit")
+		pubMiB       = fs.Float64("publish-mib-per-sec", envFloat(getenv, "PUBLISH_MIB_PER_SEC", publish.DefaultBytesPerSec>>20), "the relay's budget, MiB per second; 0 is no limit")
+		pubQueue     = fs.Int("publish-queue", envInt(getenv, "PUBLISH_QUEUE", publish.DefaultQueue), "records that may wait to go up the tunnel; a record that finds it full is refused and not copied")
+		pubQueueMiB  = fs.Int("publish-queue-mib", envInt(getenv, "PUBLISH_QUEUE_MIB", publish.DefaultQueueBytes>>20), "MiB that may wait to go up the tunnel")
 		metricsAddr  = fs.String("metrics-addr", env("METRICS_ADDR", ":9600"), "address of the metrics and health listener; empty disables it")
 		instance     = fs.String("instance-id", env("INSTANCE_ID", host), "service.instance.id for logs and metrics")
 		logLevel     = fs.String("log-level", env("LOG_LEVEL", "info"), "debug, info, warn or error")
@@ -184,6 +215,40 @@ func parse(fs *flag.FlagSet, args []string, getenv func(string) string) (*Config
 		cfg.DistributeMaxRecord = objfmt.BEEFDeliveryHeaderSize + *distMaxMiB<<20
 	} else if *distAdv != "" {
 		return nil, errors.New("-distribute-advertise is set without -distribute-listen")
+	}
+	if *deliver < 1 || *deliver > objfmt.BEEFMaxTopics {
+		return nil, fmt.Errorf("-deliver-topics %d: between 1 and %d", *deliver, objfmt.BEEFMaxTopics)
+	}
+	cfg.DeliverTopics = *deliver
+	if *pubListen != "" {
+		cfg.PublishListen = *pubListen
+		for _, f := range strings.Split(*pubIngress, ",") {
+			if f = strings.TrimSpace(f); f == "" {
+				continue
+			}
+			if _, _, err := net.SplitHostPort(f); err != nil {
+				return nil, fmt.Errorf("-publish-ingress %q: %w", f, err)
+			}
+			cfg.PublishIngress = append(cfg.PublishIngress, f)
+		}
+		if len(cfg.PublishIngress) == 0 {
+			return nil, errors.New("-publish-listen needs -publish-ingress, the edge's ingress addresses")
+		}
+		if cfg.PublishSource, err = netip.ParseAddr(*pubSource); err != nil || cfg.PublishSource.IsUnspecified() {
+			return nil, fmt.Errorf("-publish-source %q: the consumer's own address, which the edge excludes from its lane", *pubSource)
+		}
+		if *pubMaxMiB < 1 || *pubQueue < 1 || *pubQueueMiB < 1 || *pubSrcObjs < 0 || *pubSrcMiB < 0 || *pubObjs < 0 || *pubMiB < 0 {
+			return nil, errors.New("-publish-max-object-mib, -publish-queue and -publish-queue-mib must be at least 1, and the budgets not negative")
+		}
+		if cfg.DistributeListen == "" {
+			return nil, errors.New("-publish-listen needs -distribute-listen: the publish point copies to the hosts the distributor serves")
+		}
+		cfg.PublishMaxObject = *pubMaxMiB << 20
+		cfg.PublishSourceObjects, cfg.PublishSourceBytes = *pubSrcObjs, *pubSrcMiB*(1<<20)
+		cfg.PublishObjects, cfg.PublishBytes = *pubObjs, *pubMiB*(1<<20)
+		cfg.PublishQueue, cfg.PublishQueueBytes = *pubQueue, int64(*pubQueueMiB)<<20
+	} else if *pubIngress != "" || *pubSource != "" {
+		return nil, errors.New("-publish-ingress and -publish-source are set without -publish-listen")
 	}
 	return cfg, nil
 }

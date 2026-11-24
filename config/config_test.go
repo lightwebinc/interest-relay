@@ -145,3 +145,31 @@ func TestDistributeFlags(t *testing.T) {
 		}
 	}
 }
+
+func TestPublish(t *testing.T) {
+	base := []string{"-upstream", "[2001:db8::a]:8729", "-allow", "2001:db8:1::/64",
+		"-distribute-listen", "[::]:9171", "-distribute-advertise", "[2001:db8:1::5]:9171"}
+	cfg, err := load(t, nil, append(base, "-publish-listen", "[::]:8725",
+		"-publish-ingress", "[2001:db8::a]:8725, [2001:db8::b]:8725", "-publish-source", "2001:db8:1::5")...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.PublishListen != "[::]:8725" || len(cfg.PublishIngress) != 2 || cfg.PublishSource != netip.MustParseAddr("2001:db8:1::5") {
+		t.Fatalf("%+v", cfg)
+	}
+	if cfg.PublishMaxObject != 8<<20 || cfg.PublishObjects != 2000 || cfg.PublishBytes != 80<<20 || cfg.DeliverTopics != 3 {
+		t.Fatalf("defaults %+v", cfg)
+	}
+	for name, args := range map[string][]string{
+		"no ingress":     append(base, "-publish-listen", "[::]:8725", "-publish-source", "2001:db8:1::5"),
+		"no source":      append(base, "-publish-listen", "[::]:8725", "-publish-ingress", "[2001:db8::a]:8725"),
+		"no distributor": {"-upstream", "[2001:db8::a]:8729", "-allow", "2001:db8:1::/64", "-publish-listen", "[::]:8725", "-publish-ingress", "[2001:db8::a]:8725", "-publish-source", "2001:db8:1::5"},
+		"no listen":      append(base, "-publish-source", "2001:db8:1::5"),
+		"bad ingress":    append(base, "-publish-listen", "[::]:8725", "-publish-ingress", "2001:db8::a", "-publish-source", "2001:db8:1::5"),
+		"deliver 0":      append(base, "-deliver-topics", "0"),
+	} {
+		if _, err := load(t, nil, args...); err == nil {
+			t.Errorf("%s: accepted", name)
+		}
+	}
+}

@@ -18,14 +18,15 @@ This repository's own source is Apache-2.0 and is in LICENSE, not here.
 Contents:
    1. github.com/beorn7/perks  (MIT License)
    2. github.com/cespare/xxhash/v2  (MIT License)
-   3. github.com/lightwebinc/shard-common  (Apache License 2.0)
-   4. github.com/munnerz/goautoneg  (BSD License)
-   5. github.com/prometheus/client_golang  (Apache License 2.0)
-   6. github.com/prometheus/client_model  (Apache License 2.0)
-   7. github.com/prometheus/common  (Apache License 2.0)
-   8. github.com/prometheus/procfs  (Apache License 2.0)
-   9. golang.org/x/sys  (BSD License)
-  10. google.golang.org/protobuf  (BSD License)
+   3. github.com/lightwebinc/overlay-bridge  (Apache License 2.0)
+   4. github.com/lightwebinc/shard-common  (Apache License 2.0)
+   5. github.com/munnerz/goautoneg  (BSD License)
+   6. github.com/prometheus/client_golang  (Apache License 2.0)
+   7. github.com/prometheus/client_model  (Apache License 2.0)
+   8. github.com/prometheus/common  (Apache License 2.0)
+   9. github.com/prometheus/procfs  (Apache License 2.0)
+  10. golang.org/x/sys  (BSD License)
+  11. google.golang.org/protobuf  (BSD License)
 
 ================================================================================
 1. github.com/beorn7/perks
@@ -82,7 +83,349 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ================================================================================
-3. github.com/lightwebinc/shard-common
+3. github.com/lightwebinc/overlay-bridge
+   Apache License 2.0
+================================================================================
+
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright 2026 Lightweb Inc. (https://lightweb.net)
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+--------------------------------------------------------------------------------
+NOTICE shipped with github.com/lightwebinc/overlay-bridge
+--------------------------------------------------------------------------------
+
+overlay-bridge
+Copyright 2026 Lightweb Inc. (https://lightweb.net)
+
+=========================================================================
+
+This software is a landing-tier bridge that runs an unmodified overlay
+services engine with a multicast delivery fabric as its transport. It
+terminates a BEEF object delivery lane and hands each delivered object to
+the engine's own submit interface with the topic it matched, so delivery
+arrives as an ordinary client submission. It terminates a block header
+lane into a local, proof-of-work-checked header store and serves that
+store to the engine as its chain tracker, so SPV inside the engine checks
+against headers the host itself received. A submit facade accepts client
+broadcasts, forwards them to the local engine first, and publishes each
+accepted submission once onto the object plane, in place of the engine's
+own host-by-host propagation. The engine is not modified: no patched
+ingest, no additional endpoint, and no change to validation or to
+admittance.
+
+This product includes software developed at Lightweb Inc. and licensed
+under the Apache License, Version 2.0 (see LICENSE).
+
+=========================================================================
+Third-Party Standards
+
+This software transports objects conforming to published standards
+maintained by BSV Blockchain, and to companion specifications of the BSV
+multicast transaction distribution stack:
+
+  BRC-22:  Overlay Network Data Synchronization
+  BRC-24:  Overlay Network Lookup Services
+  BRC-62:  Background Evaluation Extended Format (BEEF) Transactions
+  BRC-88:  Overlay Services Synchronization Architecture (SHIP/SLAP)
+  BSV Blockchain Standards Repository
+  https://github.com/bsv-blockchain/BRCs/
+
+  BRC-135: Multicast Block Header Frame Format
+  BRC-148: Multicast Shard Domain Partitioning and the BEEF Object Plane
+  BRC-149: Multicast BEEF Object Frame Format
+  https://github.com/lightwebinc/bsv-multicast/
+
+=========================================================================
+Interoperability
+
+This software interoperates with an overlay services engine over its
+published network interfaces only: it submits objects to the engine's
+BRC-22 submit endpoint, serves the engine a chain tracker over HTTP, and
+serves the same BRC-22 submit interface to the engine's own clients. It
+does not incorporate, link, or redistribute any overlay engine source
+code, and it imports no engine module. The engine runs as released, in
+TypeScript or Go:
+
+  Overlay services engine and tooling (TypeScript)
+  https://github.com/bsv-blockchain/ts-stack
+
+  Overlay services engine (Go)
+  https://github.com/bsv-blockchain/go-overlay-services
+
+=========================================================================
+Third-Party Software
+
+This product includes third-party software, distributed under the terms
+of their respective licenses. Each dependency retains its own copyright;
+this notice does not modify those licenses.
+
+The list below names the significant ones. It is NOT the complete set:
+a statically linked binary contains every module it imports, directly or
+not, and LICENSE-THIRD-PARTY reproduces all 16 of their licenses
+verbatim. That file is generated from what the binary actually links
+rather than maintained by hand, and it ships inside the container image,
+because nearly every license here requires its own text to reach whoever
+receives a binary and static linking discards the files they live in.
+
+  github.com/lightwebinc/teranode-bridge      Apache License 2.0
+  github.com/lightwebinc/shard-common         Apache License 2.0
+  github.com/bsv-blockchain/go-sdk            Apache License 2.0
+  github.com/decred/dcrd/dcrec/secp256k1/v4   ISC License
+  github.com/prometheus/client_golang         Apache License 2.0
+  google.golang.org/protobuf                  BSD 3-Clause License
+
+go-sdk is under the Apache License 2.0 from v1.7.5, the version
+overlay-bridge builds on. Earlier versions were under the Open BSV
+License Version 5, whose grant was revocable and limited to the BSV
+Blockchains; those terms do not apply to v1.7.5.
+
+Section 4(d) of the Apache License asks for more than its text: where a
+module ships a NOTICE file, its attribution notices travel too.
+LICENSE-THIRD-PARTY reproduces the NOTICE of every linked module that
+ships one, after that module's license. go-sdk's is repeated here,
+because it names licenses whose text go-sdk does not ship:
+
+  github.com/bsv-blockchain/go-sdk
+    go-sdk
+    Copyright 2023-2026 BSV Association
+
+    This product includes software from these projects, under their own
+    licenses:
+    - btcd (chainhash, compat, script/interpreter): Copyright (c)
+      2013-2017 The btcsuite developers (ISC)
+    - btcec (primitives/ec): Copyright 2010 The Go Authors, Copyright
+      2011 ThePiachu, Copyright 2013-2014 The btcsuite developers (ISC)
+    - dcrd (chainhash, script/interpreter): Copyright (c) 2015-2018 The
+      Decred developers (ISC)
+    - Bitcoin Core script test data (script/interpreter/data): Copyright
+      (c) 2012-2014 The Bitcoin Core developers (MIT)
+
+go-sdk names those projects and ships no copy of the ISC License they
+are under, so LICENSE-THIRD-PARTY, which is generated from the license
+files modules ship, does not hold it for them. The ISC License asks that
+its copyright notice and its permission notice appear in all copies. The
+copyright notices are the ones go-sdk states, above. The permission
+notice, as btcd and dcrd publish it, is:
+
+  Permission to use, copy, modify, and distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+  ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+go-sdk also ships a PATENTS file, in which BSV Association states that it
+holds no patent rights and undertakes not to assert any against a user of
+the software. It travels with go-sdk's source.
+
+=========================================================================
+
+================================================================================
+4. github.com/lightwebinc/shard-common
    Apache License 2.0
 ================================================================================
 
@@ -381,7 +724,7 @@ NOTICE must travel with any binary built from this library.
 =========================================================================
 
 ================================================================================
-4. github.com/munnerz/goautoneg
+5. github.com/munnerz/goautoneg
    BSD License
 ================================================================================
 
@@ -418,7 +761,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
-5. github.com/prometheus/client_golang
+6. github.com/prometheus/client_golang
    Apache License 2.0
 ================================================================================
 
@@ -648,7 +991,7 @@ Copyright 2010 The Go Authors
 See source code for license details.
 
 ================================================================================
-6. github.com/prometheus/client_model
+7. github.com/prometheus/client_model
    Apache License 2.0
 ================================================================================
 
@@ -865,7 +1208,7 @@ This product includes software developed at
 SoundCloud Ltd. (http://soundcloud.com/).
 
 ================================================================================
-7. github.com/prometheus/common
+8. github.com/prometheus/common
    Apache License 2.0
 ================================================================================
 
@@ -1082,7 +1425,7 @@ This product includes software developed at
 SoundCloud Ltd. (http://soundcloud.com/).
 
 ================================================================================
-8. github.com/prometheus/procfs
+9. github.com/prometheus/procfs
    Apache License 2.0
 ================================================================================
 
@@ -1301,7 +1644,7 @@ This product includes software developed at
 SoundCloud Ltd. (http://soundcloud.com/).
 
 ================================================================================
-9. golang.org/x/sys
+10. golang.org/x/sys
    BSD License
 ================================================================================
 
@@ -1334,7 +1677,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
-10. google.golang.org/protobuf
+11. google.golang.org/protobuf
    BSD License
 ================================================================================
 

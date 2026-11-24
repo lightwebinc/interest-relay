@@ -16,7 +16,11 @@ end of the consumer's tunnel. Interest stops at the delivery edge.
 By default the relay does only this and carries no objects. Started with
 `-distribute-listen`, it also ends the consumer's lane and sends each object
 on to the hosts that asked for its topic: see
-[Distribution](docs/architecture.md#distribution).
+[Distribution](docs/architecture.md#distribution). With `-publish-listen`
+as well, it is the domain's publish point: the hosts publish to it, it sends
+each submission up the tunnel from the consumer's own address and copies it
+at once to the siblings that asked for its topics, so nothing of a host's
+own comes back from the edge: see [Publishing](docs/architecture.md#publishing).
 
 The protocol is a draft and its wire may still change.
 
@@ -41,6 +45,7 @@ build/interest-announce -upstream '[2001:db8:a::1]:8729' tm_example tm_other
 | `.` | the daemon |
 | `relay/` | the relay as a package, to embed in another program |
 | `distributor/` | the unicast distributor: ends a lane, sends each record to the hosts that asked |
+| `publish/` | the publish point: takes the hosts' submissions, sends them up the tunnel, copies them to siblings |
 | `cmd/interest-announce` | an announcer for the command line |
 | `cmd/interest-terminus` | a stand-in for a delivery edge, for testing |
 | `cmd/lane-feed`, `cmd/lane-sink` | a lane writer and a host's lane, for testing distribution |
@@ -52,7 +57,7 @@ The protocol itself (the wire, the announcer and the receiver) lives in
 
 ## Documentation
 
-- [How it works](docs/architecture.md): roles, soft state, scope, restarts, loops, distribution
+- [How it works](docs/architecture.md): roles, soft state, scope, restarts, loops, distribution, publishing
 - [Configuration](docs/configuration.md): every flag and environment variable
 - [Operations](docs/operations.md): metrics, health, the state endpoint, what to alert on
 - [Testing](docs/testing.md): the test tools and the namespace test
