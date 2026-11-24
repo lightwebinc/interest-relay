@@ -80,6 +80,27 @@ route.
 | `bir_distributor_host_dial_errors_total{host}` | Connection attempts to the host that failed. |
 | `bir_distributor_host_queued_bytes{host}` | Bytes waiting for the host now. |
 
+### Publishing
+
+Exported only when the relay is a publish point.
+
+| Metric | Meaning |
+|---|---|
+| `bir_publish_connections` | Hosts' publishing connections open now. |
+| `bir_publish_records_total` | Submission records read whole, within the object bound and with a BEEF marker. |
+| `bir_publish_bytes_total` | Bytes of those records. |
+| `bir_publish_accepted_total` | Records the up-tunnel queue took; only these are copied. |
+| `bir_publish_confirmed_total` | Records the edge's ingress acknowledged. |
+| `bir_publish_copies_total` | Copies offered to sibling hosts; a record to three siblings is three. The distributor's per-host series show what each host was sent and shed. |
+| `bir_publish_refused_total{reason}` | `source` (a host outside `-allow`), `grammar` (not a submission-record stream), `malformed` (the stream is closed), `oversize`, `not_beef`, `rate` (over a host's or the relay's budget), `queue_full` (the up-tunnel queue had no room), `conns`. |
+| `bir_publish_up_queue_depth` | Records waiting to go up the tunnel. |
+| `bir_publish_up_shed_total`, `bir_publish_up_failed_total` | Records the up-tunnel queue shed, and that its client failed to send. |
+| `bir_publish_up_resent_total`, `bir_publish_up_unconfirmed_total` | Records sent again on a new connection, and given up on after their resends. |
+
+Alert on `bir_publish_refused_total{reason=~"queue_full|rate"}` rising (the
+edge is slow or the domain publishes more than its budget), and on
+`bir_publish_up_unconfirmed_total` rising (submissions lost on the way up).
+
 ## Reading the numbers
 
 | You see | It means |

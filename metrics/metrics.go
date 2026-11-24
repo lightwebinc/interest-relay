@@ -19,6 +19,7 @@ import (
 	"github.com/lightwebinc/shard-common/interest"
 	"github.com/lightwebinc/shard-common/logging"
 
+	"github.com/lightwebinc/interest-relay/publish"
 	"github.com/lightwebinc/interest-relay/relay"
 )
 
@@ -303,9 +304,16 @@ func formatCount(n int) string {
 //	/readyz    200 when an upstream is reachable and holds what is wanted, else 503
 //	/state     the relay's table as JSON
 //	/loglevel  read or set the log level
-func Handler(r *relay.Relay, level *slog.LevelVar) http.Handler {
+func Handler(r *relay.Relay, level *slog.LevelVar) http.Handler { return HandlerWith(r, nil, level) }
+
+// HandlerWith is Handler for a relay that also runs a publish point (nil:
+// none), whose counters it adds to /metrics.
+func HandlerWith(r *relay.Relay, pub *publish.Server, level *slog.LevelVar) http.Handler {
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(NewCollector(r), collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+	if pub != nil {
+		reg.MustRegister(NewPublishCollector(pub))
+	}
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
@@ -349,4 +357,63 @@ func Serve(ctx context.Context, addr string, h http.Handler) error {
 		return nil
 	}
 	return err
+}
+
+// publishCollector reads a publish point at scrape time.
+type publishCollector struct {
+	p                                                    *publish.Server
+	conns, records, bytes, accepted, confirmed, copies   *prometheus.Desc
+	refused, upDepth, upShed, upFailed, upResent, upLost *prometheus.Desc
+}
+
+// NewPublishCollector returns a collector for the publish point (item L2).
+func NewPublishCollector(p *publish.Server) prometheus.Collector {
+	d := func(name, help string, labels ...string) *prometheus.Desc {
+		return prometheus.NewDesc("bir_publish_"+name, help, labels, nil)
+	}
+	return &publishCollector{
+		p:         p,
+		conns:     d("connections", "Hosts' publishing connections open now."),
+		records:   d("records_total", "Submission records read whole, within the object bound and with a BEEF marker."),
+		bytes:     d("bytes_total", "Bytes of those records."),
+		accepted:  d("accepted_total", "Records the up-tunnel queue took; only these are copied to siblings."),
+		confirmed: d("confirmed_total", "Records the edge's ingress acknowledged."),
+		copies:    d("copies_total", "Copies offered to sibling hosts (a record to three siblings is three)."),
+		refused: d("refused_total",
+			"Records or connections refused: source (a host outside -allow), grammar (not a submission-record stream), malformed (closed), oversize, not_beef, rate (over a host's or the relay's budget), queue_full (the up-tunnel queue had no room), conns.",
+			"reason"),
+		upDepth:  d("up_queue_depth", "Records waiting to go up the tunnel."),
+		upShed:   d("up_shed_total", "Records the up-tunnel queue shed."),
+		upFailed: d("up_failed_total", "Records the up-tunnel client failed to send."),
+		upResent: d("up_resent_total", "Records sent again on a new connection because the last one died unconfirmed."),
+		upLost:   d("up_unconfirmed_total", "Records given up on after their resends."),
+	}
+}
+
+func (c *publishCollector) Describe(ch chan<- *prometheus.Desc) {
+	for _, d := range []*prometheus.Desc{c.conns, c.records, c.bytes, c.accepted, c.confirmed, c.copies, c.refused,
+		c.upDepth, c.upShed, c.upFailed, c.upResent, c.upLost} {
+		ch <- d
+	}
+}
+
+func (c *publishCollector) Collect(ch chan<- prometheus.Metric) {
+	st := c.p.Stats()
+	counter := func(d *prometheus.Desc, v uint64, labels ...string) {
+		ch <- prometheus.MustNewConstMetric(d, prometheus.CounterValue, float64(v), labels...)
+	}
+	ch <- prometheus.MustNewConstMetric(c.conns, prometheus.GaugeValue, float64(st.Conns))
+	counter(c.records, st.RecordsIn)
+	counter(c.bytes, st.BytesIn)
+	counter(c.accepted, st.Accepted)
+	counter(c.confirmed, st.Confirmed)
+	counter(c.copies, st.Copies)
+	for i, name := range publish.ReasonNames {
+		counter(c.refused, st.Refused[i], name)
+	}
+	ch <- prometheus.MustNewConstMetric(c.upDepth, prometheus.GaugeValue, float64(st.Up.Depth))
+	counter(c.upShed, st.Up.Shed)
+	counter(c.upFailed, st.Up.Failed)
+	counter(c.upResent, st.Up.Resent)
+	counter(c.upLost, st.Up.Unconfirmed)
 }

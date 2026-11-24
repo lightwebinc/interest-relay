@@ -2,11 +2,16 @@
 // takes the interest announced by the hosts and relays below it, holds
 // their union, and announces that union to its own upstreams.
 //
-// It does only this. It carries no objects.
+// That is all it does unless told more: with -distribute-listen it ends the
+// consumer's lane and sends each record on to the hosts that asked for its
+// topics, and with -publish-listen as well it is the domain's publish point,
+// taking the hosts' submissions up the tunnel and copying each at once to
+// their siblings.
 package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net"
 	"os"
@@ -21,6 +26,7 @@ import (
 	"github.com/lightwebinc/interest-relay/config"
 	"github.com/lightwebinc/interest-relay/distributor"
 	"github.com/lightwebinc/interest-relay/metrics"
+	"github.com/lightwebinc/interest-relay/publish"
 	"github.com/lightwebinc/interest-relay/relay"
 )
 
@@ -71,6 +77,30 @@ func run() error {
 		return err
 	}
 
+	var pub *publish.Server
+	var pubLn net.Listener
+	if cfg.PublishListen != "" {
+		if pub, err = publish.New(publish.Config{
+			Allow:         cfg.Allow,
+			Ingress:       cfg.PublishIngress,
+			Source:        cfg.PublishSource,
+			MaxObject:     cfg.PublishMaxObject,
+			DeliverTopics: cfg.DeliverTopics,
+			SourceObjects: cfg.PublishSourceObjects,
+			SourceBytes:   cfg.PublishSourceBytes,
+			TotalObjects:  cfg.PublishObjects,
+			TotalBytes:    cfg.PublishBytes,
+			Queue:         cfg.PublishQueue,
+			QueueBytes:    cfg.PublishQueueBytes,
+		}, r.Distributor()); err != nil {
+			return err
+		}
+		if pubLn, err = net.Listen("tcp", cfg.PublishListen); err != nil {
+			return err
+		}
+		defer func() { _ = pubLn.Close() }() // ServeListener closes it too; this covers a start that fails first
+	}
+
 	down, err := net.ListenUDP("udp", net.UDPAddrFromAddrPort(cfg.Listen))
 	if err != nil {
 		return err
@@ -90,6 +120,10 @@ func run() error {
 		"allow", cfg.Allow,
 		"lifetimes", cfg.Lifetimes,
 		"metrics_addr", cfg.MetricsAddr,
+		"distribute", cfg.DistributeListen,
+		"publish", cfg.PublishListen,
+		"publish_source", cfg.PublishSource,
+		"publish_ingress", cfg.PublishIngress,
 	)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -100,14 +134,28 @@ func run() error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if err := metrics.Serve(ctx, cfg.MetricsAddr, metrics.Handler(r, levelVar)); err != nil {
+			if err := metrics.Serve(ctx, cfg.MetricsAddr, metrics.HandlerWith(r, pub, levelVar)); err != nil {
 				slog.Error("metrics listener", "err", err)
+			}
+		}()
+	}
+	var pubErr error
+	if pub != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := pub.ServeListener(ctx, pubLn); err != nil && ctx.Err() == nil {
+				pubErr = fmt.Errorf("publish point: %w", err)
+				cancel() // a relay that cannot publish for its hosts stops, rather than drop their submissions quietly
 			}
 		}()
 	}
 	err = r.Serve(ctx, down, up)
 	cancel()
 	wg.Wait()
+	if err == nil {
+		err = pubErr // a non-zero exit, so a supervisor restarts it
+	}
 	slog.Info("shutdown complete")
 	return err
 }
@@ -119,9 +167,10 @@ func distConfig(cfg *config.Config) *distributor.Config {
 		return nil
 	}
 	return &distributor.Config{
-		Listen:     cfg.DistributeListen,
-		MaxRecord:  cfg.DistributeMaxRecord,
-		Queue:      cfg.DistributeQueue,
-		QueueBytes: cfg.DistributeQueueBytes,
+		Listen:        cfg.DistributeListen,
+		MaxRecord:     cfg.DistributeMaxRecord,
+		Queue:         cfg.DistributeQueue,
+		QueueBytes:    cfg.DistributeQueueBytes,
+		DeliverTopics: cfg.DeliverTopics,
 	}
 }

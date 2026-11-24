@@ -60,6 +60,22 @@ Off unless `-distribute-listen` is set. See
 | `-distribute-queue` | `DISTRIBUTE_QUEUE` | `1024` | Records that may wait for one host. Beyond it the host's records are shed. |
 | `-distribute-queue-mib` | `DISTRIBUTE_QUEUE_MIB` | `64` | MiB that may wait for one host. Beyond it the host's records are shed, except that a larger record still goes to a host with nothing waiting. |
 | `-distribute-max-object-mib` | `DISTRIBUTE_MAX_OBJECT_MIB` | `64` | The largest object on the lane, in MiB. A longer record means a broken lane, which is closed and counted. |
+| `-deliver-topics` | `DELIVER_TOPICS` | `3` | How many of a record's leading topic names the edge delivers it on: the edge's `-beef-max-topics` for a consumer tunnel. The distributor routes, and the publish point copies, by these names. |
+
+## Publishing
+
+Off unless `-publish-listen` is set; it needs `-distribute-listen`. See
+[Publishing](architecture.md#publishing).
+
+| Flag | Environment | Default | Meaning |
+|---|---|---|---|
+| `-publish-listen` | `PUBLISH_LISTEN` | empty | The TCP address the hosts' bridges publish to (their `-edge-ingress`, with `-edge-beef-port` set to its port). Set, the relay is the domain's publish point. |
+| `-publish-ingress` | `PUBLISH_INGRESS` | empty | Required with `-publish-listen`: the edge's ingress addresses, `host:port`, comma list in failover order (side A, then side B). |
+| `-publish-source` | `PUBLISH_SOURCE` | empty | Required with `-publish-listen`: the consumer's own address, the tunnel's inner address the edge excludes from the consumer's lane. |
+| `-publish-max-object-mib` | `PUBLISH_MAX_OBJECT_MIB` | `8` | The largest object taken, in MiB: the edge's bound for a consumer tunnel. A larger one is skipped and counted. |
+| `-publish-source-objects-per-sec`, `-publish-source-mib-per-sec` | `PUBLISH_SOURCE_OBJECTS_PER_SEC`, `PUBLISH_SOURCE_MIB_PER_SEC` | `2000`, `80` | One host's budget. 0 is no limit. |
+| `-publish-objects-per-sec`, `-publish-mib-per-sec` | `PUBLISH_OBJECTS_PER_SEC`, `PUBLISH_MIB_PER_SEC` | `2000`, `80` | The relay's budget: the edge's for one source, which the whole consumer is. 0 is no limit. |
+| `-publish-queue`, `-publish-queue-mib` | `PUBLISH_QUEUE`, `PUBLISH_QUEUE_MIB` | `4096`, `256` | What may wait to go up the tunnel. A record that finds it full is refused and not copied. |
 
 ## Observability
 
@@ -106,4 +122,24 @@ interest-relay \
 # On a host: two topics, delivered to this host's lane.
 interest-announce -upstream '[2001:db8:b::1]:8729' \
   -deliver-to '[2001:db8:c:1::10]:9171' tm_example tm_other
+```
+
+The same relay as the domain's publish point: the consumer's tunnel inner
+address is `2001:db8:f::2`, and the edge's ingress is reached at
+`[2001:db8:f::a]:8725` (side A) and `[2001:db8:f::b]:8725` (side B):
+
+```sh
+interest-relay \
+  -listen   '[2001:db8:b::1]:8729' \
+  -upstream '[2001:db8:f::1]:8729' \
+  -allow    '2001:db8:c::/48' \
+  -distribute-listen    '[2001:db8:f::2]:9171' \
+  -distribute-advertise '[2001:db8:f::2]:9171' \
+  -publish-listen  '[2001:db8:b::1]:8725' \
+  -publish-ingress '[2001:db8:f::a]:8725,[2001:db8:f::b]:8725' \
+  -publish-source  '2001:db8:f::2'
+
+# A host's bridge publishes to the relay, from the address it names its lane at.
+overlay-bridge ... -edge-ingress '2001:db8:b::1' -edge-beef-port 8725 \
+  -publish-source '2001:db8:c:1::10' -interest-deliver-to '[2001:db8:c:1::10]:9171'
 ```
