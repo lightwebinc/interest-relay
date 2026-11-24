@@ -41,6 +41,7 @@ import (
 	"log/slog"
 	"net"
 	"net/netip"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -375,6 +376,9 @@ func (s *Server) readRecord(br *bufio.Reader) (rec []byte, why int, err error) {
 	rec = append(make([]byte, 0, len(env)+min(int(objLen), readChunk)), env...)
 	for left := int(objLen); left > 0; {
 		n := min(left, readChunk)
+		// Doubling, capped at the object, so a large object is copied a
+		// few times at most as it grows, not once per chunk.
+		rec = slices.Grow(rec, min(left, max(len(rec), n)))
 		rec = append(rec, make([]byte, n)...)
 		if _, err := io.ReadFull(br, rec[len(rec)-n:]); err != nil {
 			return nil, -1, err
@@ -451,13 +455,15 @@ func (s *Server) spend(src netip.Addr, n int) bool {
 	return true
 }
 
-// evictIdleLocked forgets the sources idle for a second, whose budgets are
-// full again and so the same as a new source's, and reports whether any
-// went.
+// evictIdleLocked forgets the sources whose budgets are full again, the
+// same as a new source's (one that took an object larger than its rate is
+// in debt until it has paid it back), and reports whether any went.
 func (s *Server) evictIdleLocked(now time.Time) bool {
 	gone := false
 	for a, b := range s.sources {
-		if now.Sub(b.last) >= time.Second {
+		b.objects.fill(now)
+		b.bytes.fill(now)
+		if b.objects.full() && b.bytes.full() {
 			delete(s.sources, a)
 			gone = true
 		}
@@ -466,13 +472,9 @@ func (s *Server) evictIdleLocked(now time.Time) bool {
 }
 
 // budget is a per-second allowance of objects and bytes.
-type budget struct {
-	objects, bytes bucket
-	last           time.Time // the last record charged
-}
+type budget struct{ objects, bytes bucket }
 
 func (b *budget) can(n int, now time.Time) bool {
-	b.last = now
 	b.objects.fill(now)
 	b.bytes.fill(now)
 	return b.objects.has(1) && b.bytes.has(float64(n))
@@ -504,6 +506,7 @@ func (b *bucket) fill(now time.Time) {
 }
 
 func (b *bucket) has(n float64) bool { return b.rate <= 0 || b.tokens >= min(n, b.rate) }
+func (b *bucket) full() bool         { return b.rate <= 0 || b.tokens >= b.rate }
 func (b *bucket) take(n float64) {
 	if b.rate > 0 {
 		b.tokens -= n

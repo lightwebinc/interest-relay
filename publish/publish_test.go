@@ -436,10 +436,10 @@ func TestSourcesAreNotStartedOver(t *testing.T) {
 	now := time.Now()
 	for i := range maxTrackedSources {
 		a := netip.AddrFrom4([4]byte{10, byte(i >> 16), byte(i >> 8), byte(i)})
-		s.sources[a] = &budget{objects: bucket{rate: 1}, last: now}
+		s.sources[a] = &budget{objects: bucket{rate: 1, tokens: 0.5, last: now}}
 	}
 	busy := netip.AddrFrom4([4]byte{10, 0, 0, 1})
-	s.sources[busy].objects = bucket{rate: 1, tokens: 0, last: now}
+	s.sources[busy].objects = bucket{rate: 1, tokens: -5, last: now} // in debt for six seconds
 	if s.spend(netip.MustParseAddr("10.9.9.9"), 10) {
 		t.Fatal("a new source was taken while every tracked source was spending")
 	}
@@ -447,9 +447,12 @@ func TestSourcesAreNotStartedOver(t *testing.T) {
 		t.Fatal("a spent source was given a fresh budget")
 	}
 	for _, b := range s.sources {
-		b.last = now.Add(-2 * time.Second)
+		b.objects.last = now.Add(-2 * time.Second) // two seconds on: full again, but busy is still in debt
 	}
 	if !s.spend(netip.MustParseAddr("10.9.9.9"), 10) {
-		t.Fatal("idle sources did not make room")
+		t.Fatal("sources with full budgets did not make room")
+	}
+	if _, kept := s.sources[busy]; !kept {
+		t.Fatal("a source in debt was forgotten, and would start over with a full budget")
 	}
 }
