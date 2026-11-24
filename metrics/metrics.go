@@ -366,7 +366,7 @@ type publishCollector struct {
 	refused, upDepth, upShed, upFailed, upResent, upLost *prometheus.Desc
 }
 
-// NewPublishCollector returns a collector for the publish point (item L2).
+// NewPublishCollector returns a collector for the publish point.
 func NewPublishCollector(p *publish.Server) prometheus.Collector {
 	d := func(name, help string, labels ...string) *prometheus.Desc {
 		return prometheus.NewDesc("bir_publish_"+name, help, labels, nil)

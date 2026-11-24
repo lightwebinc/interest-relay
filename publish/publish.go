@@ -1,5 +1,4 @@
-// Package publish makes a distributing relay its domain's publish point
-// (topic interest, item L2).
+// Package publish makes a distributing relay its domain's publish point.
 //
 // Hosts behind one relay share one consumer: one tunnel, one lane. The edge
 // leaves a consumer's own publications off its lane, matching the address a

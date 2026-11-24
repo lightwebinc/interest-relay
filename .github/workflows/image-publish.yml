@@ -1,0 +1,32 @@
+name: image-publish
+
+# Manual, gated image publish. No automated trigger.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type RELEASE to publish image to ghcr.io'
+        required: true
+      tag:
+        description: 'Image tag (e.g. 0.1.0)'
+        required: true
+        default: '0.1.0'
+      dry-run:
+        description: 'Build only, push nothing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: inputs.confirm == 'RELEASE'
+    permissions:
+      contents: read
+      packages: write
+    uses: lightwebinc/ci/.github/workflows/image-publish.yml@addd14064ef61ebf08d01de9b80bda61438880fb # v0.7.1
+    with:
+      tag: ${{ inputs.tag }}
+      environment: ""
+      dry-run: ${{ inputs.dry-run }}

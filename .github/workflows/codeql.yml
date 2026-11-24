@@ -1,0 +1,26 @@
+name: CodeQL
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  schedule:
+    - cron: '0 3 * * 1'  # weekly, Monday 03:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    uses: lightwebinc/ci/.github/workflows/codeql-go.yml@addd14064ef61ebf08d01de9b80bda61438880fb # v0.7.1
+    with:
+      common: false

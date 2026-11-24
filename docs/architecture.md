@@ -11,6 +11,11 @@ network. Something has to carry its interest to the edge.
 That is the relay. Each relay is configured with an upstream, in the manner
 of a default route, and accepts interest from a set of prefixes below it.
 
+![Interest travels hop by hop, from the hosts through the relays to the delivery edge, and stops there](figures/topology.svg)
+
+Where relays go in a network, what crosses each link and who opens each
+connection are in [Network traffic and topology](network.md).
+
 ## Roles
 
 | Role | What it does | Program |
@@ -22,6 +27,38 @@ of a default route, and accepts interest from a set of prefixes below it.
 The same four datagrams are used at every hop. An announcer whose own
 machine holds the tunnel talks to the edge directly, and a relay is never
 required.
+
+| Datagram | From | Says |
+|---|---|---|
+| ANNOUNCE | sender | what changed: topics added, each with a lifetime, or withdrawn |
+| DIGEST | sender | the count and digest of the sender's whole set |
+| ACK | receiver | the answer to either: a token to echo, the digest of the set held, the lifetimes granted, a status for each topic not simply accepted, the groups delivered |
+| RESYNC | receiver | a poke: check in now |
+
+One datagram is one message, sent to UDP port 8729 by default and never
+larger than 1232 bytes. The wire is specified by the
+[`interest`](https://pkg.go.dev/github.com/lightwebinc/shard-common/interest)
+package of shard-common.
+
+```mermaid
+sequenceDiagram
+  participant H as host
+  participant R as relay
+  participant E as delivery edge
+  H->>R: ANNOUNCE a, b
+  R-->>H: ACK: a token, nothing applied
+  H->>R: ANNOUNCE a, b (with the token)
+  R-->>H: ACK: ok
+  R->>E: ANNOUNCE a, b (the union changed)
+  E-->>R: ACK: a is ok, b is refused (outside the bound)
+  R-->>H: RESYNC
+  H->>R: DIGEST
+  R-->>H: ACK: matched, b is held but refused upstream
+```
+
+Each hop answers for itself, at once. What the hop above says later reaches
+the host at its next check-in, and the relay pokes the hosts that hold the
+topic so that the check-in is now.
 
 ## What a relay keeps
 
@@ -47,6 +84,19 @@ holds, every topic is refreshed at once.
 If a sender goes silent, what it announced lapses when the lifetime runs
 out. If it leaves in an orderly way, it can withdraw everything in one
 datagram.
+
+```mermaid
+sequenceDiagram
+  participant H as host
+  participant R as relay
+  Note over H,R: granted a lifetime of 300 s
+  loop every 100 s
+    H->>R: DIGEST of the whole set
+    R-->>H: ACK: matched, every topic refreshed
+  end
+  Note over H: the host dies
+  Note over R: 300 s after the last refresh: the topics lapse, and the union shrinks
+```
 
 ## Loss and reordering
 
@@ -86,6 +136,26 @@ nothing to do.
 | The relay | It starts empty and learns its set again as the senders below check in, which takes up to one refresh interval. Until then its upstream keeps what the previous run announced: the relay does not let the upstream drop anything for the length of `-restart-hold`. Nothing that is still wanted stops being delivered, as long as the hold covers the refresh interval of every sender below (see `-restart-hold`). An upstream that pokes the relay during the hold, to say that what it serves changed, is asked for its scope at once. |
 | A sender | It replays its set. What it no longer wants is removed when the replay ends. |
 
+A relay restart, with the default lifetime and hold:
+
+```mermaid
+sequenceDiagram
+  participant H as hosts
+  participant R as relay
+  participant E as delivery edge
+  Note over R: restarts, and holds nothing
+  R->>E: DIGEST (a probe: compares nothing, removes nothing)
+  E-->>R: ACK: the groups delivered
+  Note over E: keeps what the previous run announced, and keeps delivering
+  H->>R: DIGEST (the next refresh, within 100 s)
+  R-->>H: ACK: a new token, so the relay holds nothing
+  H->>R: ANNOUNCE (the whole set, replayed)
+  R->>E: ANNOUNCE (the union, as it is learned)
+  Note over R: -restart-hold ends (105 s)
+  R->>E: DIGEST of the union
+  E-->>R: ACK: what was not announced again is removed
+```
+
 The relay's identity toward its upstream is derived from the host name and
 `-sender-label`, so it is the same after a restart. That is what lets the
 upstream match the new run to what the old one announced.
@@ -122,11 +192,7 @@ Off by default. With `-distribute-listen` set, the relay also carries
 objects: it ends the consumer's lane and sends each record on to the hosts
 below that asked for its topic.
 
-```text
-                          ┌─▶ h1   the records of h1's topics
- edge ══ lane ══▶ relay ──┼─▶ h2   the records of h2's topics
-                          └─✗ h3   named an address it may not name
-```
+![What crosses each link when the relay carries interest only, when it distributes, and when it is the publish point](figures/modes.svg)
 
 A host asks for delivery by naming a delivery address with its topics: a
 unicast stream of delivery records, to a host and port
@@ -189,12 +255,7 @@ Off by default; it needs distribution. With `-publish-listen` set, the
 relay is also its domain's publish point: the hosts publish to it, and it
 publishes for them.
 
-```text
-            ┌──── h1 publishes ────┐
-            │                      ▼
- edge ◀══ tunnel, from the ══ relay ──▶ h2, h3   at once, if they asked
-          consumer's address           (never back to h1)
-```
+![Why hosts behind one relay publish to it: three ways for host h1 to publish, and what reaches h1 and its sibling h2](figures/publish.svg)
 
 Hosts behind one relay share one consumer: one tunnel and one lane. The
 edge leaves a consumer's own publications off its lane, matching the address

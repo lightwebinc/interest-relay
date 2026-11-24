@@ -27,6 +27,7 @@ All names start with `bir_`.
 | `bir_topics_unserved` | Wanted topics that no upstream serves. |
 | `bir_hops` | Hop count the relay announces with. |
 | `bir_ready` | 1 when `/readyz` would answer 200. |
+| `bir_build_info{version}` | Always 1; the label is the version the binary was built as. |
 
 ### What arrives from below
 

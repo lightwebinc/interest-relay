@@ -10,8 +10,7 @@ its code is inside any binary built here and inside any image carrying
 one. Nearly all of these licences require their own text to travel with
 a BINARY distribution and not only with source, and static linking
 discards the files they live in. That is why this file exists.
-Any release artefact or image built from this repository must
-carry it, and the release and image workflows both do.
+The Dockerfile copies it into the image.
 
 This repository's own source is Apache-2.0 and is in LICENSE, not here.
 

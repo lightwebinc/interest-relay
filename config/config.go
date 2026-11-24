@@ -69,7 +69,7 @@ type Config struct {
 	// copies by.
 	DeliverTopics int
 
-	// PublishListen turns on the publish point (item L2): the TCP address
+	// PublishListen turns on the publish point: the TCP address
 	// the hosts' bridges publish to (their -edge-ingress). PublishIngress
 	// are the edge's ingress addresses in failover order, and PublishSource
 	// the consumer's own address, the tunnel's inner address.
