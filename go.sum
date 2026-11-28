@@ -8,8 +8,8 @@ github.com/klauspost/compress v1.20.1 h1:T7kKElXUMXrUJ2E9QhQhxFtcK5rPyLdsGZvdbLM
 github.com/klauspost/compress v1.20.1/go.mod h1:LUdAzn7YLVvxLpc7y3V1m40wESHTgc1422pwwBSKYuI=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
-github.com/lightwebinc/overlay-bridge v0.17.0 h1:2IDwG31oFVny2Ogszt+TZw3XTdK8dCPVcQ4zBKoPiVc=
-github.com/lightwebinc/overlay-bridge v0.17.0/go.mod h1:DhlUFp36zTdvgCOHg7XK3SmM01B63FGICT0fyVONcZU=
+github.com/lightwebinc/overlay-bridge v0.18.1 h1:AgnhqeZY2iLtGO7GX35CknnPtqafa4jlpyTHgyWk2sI=
+github.com/lightwebinc/overlay-bridge v0.18.1/go.mod h1:q8wzQCg9MJ/9ebjV+kGIJywre2JhkNnj1b45xKehA9Q=
 github.com/lightwebinc/shard-common v0.29.0 h1:GPQ5NTDBh1tJRk8m1zpykYcCM0fUrnPlirNxwRNLHjQ=
 github.com/lightwebinc/shard-common v0.29.0/go.mod h1:OVCKu7VRtlhDOTb5n/FkDf15xkovglBGLF0quWTjt9U=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=

@@ -3,7 +3,7 @@ module github.com/lightwebinc/interest-relay
 go 1.26.2
 
 require (
-	github.com/lightwebinc/overlay-bridge v0.17.0
+	github.com/lightwebinc/overlay-bridge v0.18.1
 	github.com/lightwebinc/shard-common v0.29.0
 	github.com/prometheus/client_golang v1.25.0
 )
